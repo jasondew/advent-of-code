@@ -309,11 +309,11 @@ view : Model -> Html Msg
 view model =
     div
         []
-        [ h1 [] [ text "Advent of Code 2016 — Day 1, puzzle 1" ]
+        [ h1 [] [ text "Advent of Code 2016 — Day 1" ]
         , span [] [ label [] [ text "Directions: ", input [ onInput NewDirections ] [] ] ]
         , h3 [] [ text <| "Distance to HQ: " ++ (model.stateHistory |> finalPosition |> distanceFromOrigin |> toString) ]
         , h3 [] [ text <| "First revisit: " ++ (firstPositionRevisited model.stateHistory |> maybePositionView) ]
-        , h3 [] [ text <| "Distance to first revisit: " ++ (firstPositionRevisited model.stateHistory |> Maybe.map distanceFromOrigin |> toString) ]
+        , h3 [] [ text <| "Distance to first revisit: " ++ (firstPositionRevisited model.stateHistory |> Maybe.map distanceFromOrigin |> Maybe.withDefault 0 |> toString) ]
         , mapView model.stateHistory
         , stateHistoryView model.stateHistory
         ]
