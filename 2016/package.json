@@ -1,0 +1,7 @@
+{
+  "repository": {},
+  "scripts" : { "start" : "./node_modules/elm/binwrappers/elm-reactor" },
+  "dependencies": {
+    "elm": "0.18.0"
+  }
+}
