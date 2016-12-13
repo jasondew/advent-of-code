@@ -1,18 +1,21 @@
 module Decompress exposing (main)
 
 import Html exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onClick)
+import Html.Attributes exposing (type_)
 import Regex
 
 
 type alias Model =
     { input : String
-    , output : String
+    , recursive : Bool
+    , uncompressedSize : Int
     }
 
 
 type Msg
     = NewInput String
+    | ToggleRecursive
 
 
 initialInput : String
@@ -22,18 +25,34 @@ initialInput =
 
 init : ( Model, Cmd Msg )
 init =
-    update (NewInput initialInput) (Model "" "")
+    update (NewInput initialInput) (Model "" False 0)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         NewInput input ->
-            { model | input = input, output = decode input } ! []
+            { model | input = input, uncompressedSize = uncompressedSize model.recursive input } ! []
+
+        ToggleRecursive ->
+            { model | recursive = not model.recursive, uncompressedSize = uncompressedSize (not model.recursive) model.input } ! []
 
 
-decode : String -> String
-decode string =
+uncompressedSize : Bool -> String -> Int
+uncompressedSize recurse string =
+    string
+        |> decode recurse
+        |> Debug.log "decoded"
+        |> List.foldl (\( run, string ) sum -> sum + run * (String.length string)) 0
+
+
+decode : Bool -> String -> List ( Int, String )
+decode recurse string =
+    parse recurse 1 string []
+
+
+parse : Bool -> Int -> String -> List ( Int, String ) -> List ( Int, String )
+parse recurse multiplier string pairs =
     let
         matches =
             Regex.find (Regex.AtMost 1) (Regex.regex "([^(]*)\\((\\d+)x(\\d+)\\)(.*)") string
@@ -42,18 +61,22 @@ decode string =
             Just match ->
                 case match.submatches of
                     maybePrefix :: maybeRunString :: maybeCountString :: maybeRest :: [] ->
-                        Maybe.map4 decodeRun maybePrefix maybeRunString maybeCountString maybeRest
-                            |> Maybe.withDefault "ERROR"
+                        Maybe.map4 (parseRun recurse multiplier) maybePrefix maybeRunString maybeCountString maybeRest
+                            |> Maybe.withDefault [ ( 0, "ERROR" ) ]
+                            |> List.append pairs
 
                     _ ->
-                        "ERROR"
+                        Debug.crash "error with submatches: this should never happen"
 
             Nothing ->
-                string
+                if String.length string > 0 then
+                    ( multiplier, string ) :: pairs
+                else
+                    pairs
 
 
-decodeRun : String -> String -> String -> String -> String
-decodeRun prefix runString countString rest =
+parseRun : Bool -> Int -> String -> String -> String -> String -> List ( Int, String )
+parseRun recurse multiplier prefix runString countString rest =
     let
         runLength =
             String.toInt runString |> Result.withDefault 0
@@ -66,8 +89,20 @@ decodeRun prefix runString countString rest =
 
         unused =
             String.dropLeft runLength rest
+
+        parsed =
+            if recurse then
+                if String.length unused > 0 then
+                    parse recurse (multiplier * count) run (parse recurse multiplier unused [])
+                else
+                    parse recurse (multiplier * count) run []
+            else
+                [ ( count, run ) ]
     in
-        prefix ++ String.repeat count run ++ (decode unused)
+        if String.length prefix > 0 then
+            ( multiplier, prefix ) :: parsed
+        else
+            parsed
 
 
 view : Model -> Html Msg
@@ -82,9 +117,13 @@ view model =
                 [ label [] [ text "Input: " ]
                 , textarea [ onInput NewInput ] [ text model.input ]
                 ]
+            , div
+                []
+                [ label [] [ text "Recursive: " ]
+                , input [ type_ "checkbox", onClick ToggleRecursive ] []
+                ]
             ]
-        , h3 [] [ text "Length: ", text <| toString <| String.length model.output ]
-        , div [] [ text "Output: ", text model.output ]
+        , h3 [] [ text "Uncompressed size: ", text <| toString model.uncompressedSize ]
         ]
 
 
