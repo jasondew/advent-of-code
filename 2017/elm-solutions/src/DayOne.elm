@@ -1,9 +1,19 @@
-module One exposing (repeatingSum, Offset(..))
+module DayOne exposing (partOne, partTwo)
 
 
 type Offset
     = Next
     | Half
+
+
+partOne : String -> Int
+partOne code =
+    repeatingSum Next code
+
+
+partTwo : String -> Int
+partTwo code =
+    repeatingSum Half code
 
 
 repeatingSum : Offset -> String -> Int
