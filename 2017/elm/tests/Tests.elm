@@ -3,6 +3,7 @@ module Tests exposing (..)
 import Test exposing (..)
 import DayOne
 import DayTwo
+import DayThree
 import Expect
 import String
 
@@ -12,6 +13,7 @@ all =
     describe "Test Suite"
         [ describe "Day 1" dayOneTests
         , describe "Day 2" dayTwoTests
+        , describe "Day 3" dayThreeTests
         ]
 
 
@@ -53,4 +55,17 @@ dayTwoTests =
         \() -> Expect.equal 18 (DayTwo.partOne "5 1 9 5\n7 5 3\n2 4 6 8")
     , test "5 9 2 8; 9 4 7 3; 3 8 6 5 checksums to 9" <|
         \() -> Expect.equal 9 (DayTwo.partTwo "5 9 2 8\n9 4 7 3\n3 8 6 5")
+    ]
+
+
+dayThreeTests : List Test
+dayThreeTests =
+    [ test "Data from square 1 is carried 0 steps" <|
+        \() -> Expect.equal 0 (DayThree.partOne 1)
+    , test "Data from square 12 is carried 3 steps" <|
+        \() -> Expect.equal 3 (DayThree.partOne 12)
+    , test "Data from square 23 is carried only 2 steps" <|
+        \() -> Expect.equal 2 (DayThree.partOne 23)
+    , test "Data from square 1024 must be carried 31 steps" <|
+        \() -> Expect.equal 31 (DayThree.partOne 1024)
     ]
