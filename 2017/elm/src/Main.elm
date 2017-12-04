@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import DayOne
 import DayTwo
+import DayThree
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
@@ -13,6 +14,7 @@ import Html.Events exposing (onInput)
 type alias Model =
     { dayOneInput : String
     , dayTwoInput : String
+    , dayThreeInput : String
     }
 
 
@@ -38,6 +40,7 @@ init =
 2208 2236 1451 621 1937 1952 865 61 1934 49 1510 50 1767 59 194 1344
 94 2312 2397 333 1192 106 2713 2351 2650 2663 703 157 89 510 1824 125
 """
+        "312051"
     , Cmd.none
     )
 
@@ -49,6 +52,7 @@ init =
 type Msg
     = UpdateDayOneInput String
     | UpdateDayTwoInput String
+    | UpdateDayThreeInput String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,6 +63,9 @@ update msg model =
 
         UpdateDayTwoInput input ->
             ( { model | dayTwoInput = input }, Cmd.none )
+
+        UpdateDayThreeInput input ->
+            ( { model | dayThreeInput = input }, Cmd.none )
 
 
 
@@ -71,6 +78,7 @@ view model =
         []
         [ dayOneView model
         , dayTwoView model
+        , dayThreeView model
         ]
 
 
@@ -101,6 +109,20 @@ dayTwoView model =
             []
         , solutionView "Part 1:" <| DayTwo.partOne model.dayTwoInput
         , solutionView "Part 2:" <| DayTwo.partTwo model.dayTwoInput
+        ]
+
+
+dayThreeView : Model -> Html Msg
+dayThreeView model =
+    cardView
+        [ text "Day 3: Spiral Memory" ]
+        [ input
+            [ onInput <| UpdateDayThreeInput
+            , class "form-control"
+            , value model.dayThreeInput
+            ]
+            []
+        , solutionView "Part 1:" <| DayThree.partOne model.dayThreeInput
         ]
 
 

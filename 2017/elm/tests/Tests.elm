@@ -61,11 +61,11 @@ dayTwoTests =
 dayThreeTests : List Test
 dayThreeTests =
     [ test "Data from square 1 is carried 0 steps" <|
-        \() -> Expect.equal 0 (DayThree.partOne 1)
+        \() -> Expect.equal 0 (DayThree.partOne "1")
     , test "Data from square 12 is carried 3 steps" <|
-        \() -> Expect.equal 3 (DayThree.partOne 12)
+        \() -> Expect.equal 3 (DayThree.partOne "12")
     , test "Data from square 23 is carried only 2 steps" <|
-        \() -> Expect.equal 2 (DayThree.partOne 23)
+        \() -> Expect.equal 2 (DayThree.partOne "23")
     , test "Data from square 1024 must be carried 31 steps" <|
-        \() -> Expect.equal 31 (DayThree.partOne 1024)
+        \() -> Expect.equal 31 (DayThree.partOne "1024")
     ]
