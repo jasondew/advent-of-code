@@ -4,6 +4,7 @@ import Test exposing (..)
 import DayOne
 import DayTwo
 import DayThree
+import DayFour
 import Expect
 import String
 
@@ -14,6 +15,7 @@ all =
         [ describe "Day 1" dayOneTests
         , describe "Day 2" dayTwoTests
         , describe "Day 3" dayThreeTests
+        , describe "Day 4" dayFourTests
         ]
 
 
@@ -82,4 +84,15 @@ dayThreeTests =
         \() -> Expect.equal 806 (DayThree.partTwo "800")
     , test "The first stress test value greater than 44000 is 45220" <|
         \() -> Expect.equal 45220 (DayThree.partTwo "44000")
+    ]
+
+
+dayFourTests : List Test
+dayFourTests =
+    [ test "aa bb cc dd ee is valid" <|
+        \() -> Expect.equal 1 (DayFour.partOne "aa bb cc dd ee\n")
+    , test "aa bb cc dd aa is not valid" <|
+        \() -> Expect.equal 0 (DayFour.partOne "aa bb cc dd aa")
+    , test "aa bb cc dd aaa is valid" <|
+        \() -> Expect.equal 1 (DayFour.partOne "aa bb cc dd aaa")
     ]
