@@ -68,4 +68,18 @@ dayThreeTests =
         \() -> Expect.equal 2 (DayThree.partOne "23")
     , test "Data from square 1024 must be carried 31 steps" <|
         \() -> Expect.equal 31 (DayThree.partOne "1024")
+    , test "The first stress test value greater than 10 is 11" <|
+        \() -> Expect.equal 11 (DayThree.partTwo "10")
+    , test "The first stress test value greater than 25 is 26" <|
+        \() -> Expect.equal 26 (DayThree.partTwo "25")
+    , test "The first stress test value greater than 26 is 54" <|
+        \() -> Expect.equal 54 (DayThree.partTwo "26")
+    , test "The first stress test value greater than 130 is 133" <|
+        \() -> Expect.equal 133 (DayThree.partTwo "130")
+    , test "The first stress test value greater than 150 is 304" <|
+        \() -> Expect.equal 304 (DayThree.partTwo "150")
+    , test "The first stress test value greater than 800 is 806" <|
+        \() -> Expect.equal 806 (DayThree.partTwo "800")
+    , test "The first stress test value greater than 44000 is 45220" <|
+        \() -> Expect.equal 45220 (DayThree.partTwo "44000")
     ]

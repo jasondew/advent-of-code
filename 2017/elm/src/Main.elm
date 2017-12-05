@@ -123,6 +123,7 @@ dayThreeView model =
             ]
             []
         , solutionView "Part 1:" <| DayThree.partOne model.dayThreeInput
+        , solutionView "Part 2:" <| DayThree.partTwo model.dayThreeInput
         ]
 
 
