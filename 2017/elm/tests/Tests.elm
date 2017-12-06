@@ -5,6 +5,7 @@ import DayOne
 import DayTwo
 import DayThree
 import DayFour
+import DayFive
 import Expect
 import String
 
@@ -16,6 +17,7 @@ all =
         , describe "Day 2" dayTwoTests
         , describe "Day 3" dayThreeTests
         , describe "Day 4" dayFourTests
+        , describe "Day 5" dayFiveTests
         ]
 
 
@@ -95,4 +97,13 @@ dayFourTests =
         \() -> Expect.equal 0 (DayFour.partOne "aa bb cc dd aa")
     , test "aa bb cc dd aaa is valid" <|
         \() -> Expect.equal 1 (DayFour.partOne "aa bb cc dd aaa")
+    ]
+
+
+dayFiveTests : List Test
+dayFiveTests =
+    [ test "0 3 0 1 -3 exits in 5 steps" <|
+        \() -> Expect.equal 5 (DayFive.partOne "0 3 0 1 -3")
+    , test "0 3 0 1 -3 exits in 10 steps with the new instructions" <|
+        \() -> Expect.equal 10 (DayFive.partTwo "0 3 0 1 -3")
     ]

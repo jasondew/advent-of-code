@@ -11,6 +11,6 @@ def repeating_sum(string, offset: 1)
   end
 end
 
-input = File.read("input").chomp
+input = File.read("../inputs/01").chomp
 puts repeating_sum(input)
 puts repeating_sum(input, offset: input.length / 2)
