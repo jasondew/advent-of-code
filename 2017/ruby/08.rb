@@ -65,7 +65,7 @@ def evaluate(instructions)
 end
 
 
-puts "Part 1:\n#{'-'*80}"
+puts "Example:\n#{'-'*80}"
 input = <<-EOT
 b inc 5 if a > 1
 a inc 1 if b < 5
@@ -80,10 +80,10 @@ puts "Maximum register value: #{ending_context.maximum_amount}"
 
 puts "\n"
 
-puts "Part 2:\n#{'-'*80}"
+puts "Puzzle:\n#{'-'*80}"
 input = File.read("../inputs/08").chomp
 instructions = parse(input)
 ending_context = evaluate(instructions)
-ap ending_context
+ap ending_context.sort_by {|k, v| k }.to_h
 puts "Maximum final register value: #{ending_context.values.max}"
 puts "Maximum register value: #{ending_context.maximum_amount}"

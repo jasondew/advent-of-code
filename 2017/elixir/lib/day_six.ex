@@ -17,7 +17,7 @@ defmodule DaySix do
     run_until_loop_detected(blocks, 0, [])
   end
 
-  defp run_until_loop_detected(blocks, cycles, previous_states) do
+  defp run_until_loop_detected(_blocks, _cycles, _previous_states) do
 #    if previous_index = Enum.find_index(blocks, &(&1 == previous_states)) do
 #      IO.puts "Loop of size #{cycles - previous_index} detected at cycle #{cycles}!"
 #    else

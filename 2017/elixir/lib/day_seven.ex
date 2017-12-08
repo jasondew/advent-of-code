@@ -7,7 +7,6 @@ defmodule DaySeven do
       "thnk"
   """
 
-  def partOne(input) do
-
+  def partOne(_) do
   end
 end
