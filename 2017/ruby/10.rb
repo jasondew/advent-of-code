@@ -1,14 +1,8 @@
 require "ap"
+require "active_support/core_ext/array"
 
-def part_one(input, size)
-  lengths = input.strip.split(",").map(&:to_i)
-  p lengths
-  initial_list = (0..size-1).to_a
-  context = { list: initial_list, position: 0, skip_size: 0 }
-
-  final_context = lengths.each_with_object(context) do |length, context|
-    puts "length: #{length}"
-
+def knot_hash_round(lengths, context)
+  lengths.each_with_object(context) do |length, context|
     list = context[:list]
     list_length = list.length
     from = context[:position]
@@ -28,14 +22,38 @@ def part_one(input, size)
     context[:position] = (context[:position] + length + context[:skip_size]) % list_length
     context[:skip_size] += 1
   end
-
-  puts "final list: #{final_context[:list]}"
-
-  final_context[:list].first(2).inject(:*)
 end
 
-input = "3,4,1,5"
-puts "multiplied first two: #{part_one(input, 5)}"
+def part_one(input, size)
+  lengths = input.strip.split(",").map(&:to_i)
+  initial_context = { list: (0..size-1).to_a, position: 0, skip_size: 0 }
+  knot_hash = knot_hash_round(lengths, initial_context)
 
-input = File.read("../inputs/10").chomp
-puts "multiplied first two: #{part_one(input, 256)}"
+  puts "lengths: #{lengths}"
+  puts "final list: #{knot_hash[:list]}"
+  puts "multiplied first two: #{knot_hash[:list].first(2).inject(:*)}"
+end
+
+def part_two(input)
+  lengths = input.unpack("C*") + [17, 31, 73, 47, 23]
+  initial_context = { list: (0..255).to_a, position: 0, skip_size: 0 }
+
+  final_context = 64.times.each_with_object(initial_context) do |_, context|
+    knot_hash_round(lengths, context)
+  end
+
+  hash = final_context[:list].in_groups_of(16).map do |group|
+    group.inject(:^).to_s(16).rjust(2, "0")
+  end.join
+
+  puts "#{input.inspect} -> #{hash}"
+end
+
+part_one("3,4,1,5", 5)
+part_one(File.read("../inputs/10").strip, 256)
+
+part_two("")
+part_two("AoC 2017")
+part_two("1,2,3")
+part_two("1,2,4")
+part_two(File.read("../inputs/10").strip)
