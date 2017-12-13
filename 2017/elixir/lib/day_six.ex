@@ -5,10 +5,10 @@ defmodule DaySix do
   Given 4 memory banks and an initial configuration of 0, 2, 7, 0, a loop
   is detected in 5 steps.
 
-    iex> DaySix.partOne("0 2 7 0")
+    iex> DaySix.part_one("0 2 7 0")
     5
   """
-  def partOne(input) do
+  def part_one(input) do
     blocks =
       input
       |> String.split()

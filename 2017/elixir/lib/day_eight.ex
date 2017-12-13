@@ -3,11 +3,11 @@ defmodule DayEight do
     Day 8 solver
 
     Works on the sample input:
-      iex> DayEight.partOne("b inc 5 if a > 1\na inc 1 if b < 5\nc dec -10 if a >= 1\nc inc -20 if c == 10\n")
+      iex> DayEight.part_one("b inc 5 if a > 1\na inc 1 if b < 5\nc dec -10 if a >= 1\nc inc -20 if c == 10\n")
       1
   """
 
-  def partOne(input) do
+  def part_one(input) do
     parse(input)
     |> Enum.reduce(%{registers: Map.new(), maximum: 0}, &execute/2)
     |> IO.inspect()
@@ -64,19 +64,19 @@ defmodule DayEight do
     input
     |> String.trim()
     |> String.split("\n")
-    |> Enum.map(&parseInstruction/1)
+    |> Enum.map(&parse_instruction/1)
   end
 
-  defp parseInstruction(line) do
+  defp parse_instruction(line) do
     [commandString, conditionalString] = String.split(line, " if ")
 
     %{
-      command: parseCommand(commandString),
-      conditional: parseConditional(conditionalString)
+      command: parse_command(commandString),
+      conditional: parse_conditional(conditionalString)
     }
   end
 
-  defp parseCommand(string) do
+  defp parse_command(string) do
     [register, operation, amount] = String.split(string)
 
     %{
@@ -86,7 +86,7 @@ defmodule DayEight do
     }
   end
 
-  defp parseConditional(string) do
+  defp parse_conditional(string) do
     [register, comparator, value] = String.split(string)
 
     %{
