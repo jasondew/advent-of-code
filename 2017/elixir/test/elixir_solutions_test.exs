@@ -6,4 +6,5 @@ defmodule ElixirSolutionsTest do
   #  doctest DaySeven
   doctest DayEight
   doctest DayThirteen
+  doctest DaySixteen
 end
