@@ -1,8 +1,7 @@
 require "ap"
 
-Spin = Struct.new(:count) do
+Spin = Struct.new(:count, :size) do
   def execute(programs)
-    size = programs.size
     programs[(size - count)..size] + programs[0..(size - count - 1)]
   end
 end
@@ -23,7 +22,7 @@ Partner = Struct.new(:program_a, :program_b) do
 end
 
 def part_one(input, size)
-  moves = parse(input)
+  moves = parse(input, size)
 
   final_state = moves.inject(initial_state size) do |state, move|
 #    puts "move = #{move}"
@@ -35,9 +34,11 @@ def part_one(input, size)
 end
 
 def part_two(input, size)
-  moves = parse(input)
-
-  final_state = 1_000_000_000.times.inject(initial_state size) do |state|
+  moves = parse(input, size)
+  initial = initial_state(size)
+#  final_state = (1..1_000_000_000).inject(initial_state size) do |state, index|
+  final_state = (1..100).inject(initial_state size) do |state, index|
+    puts index if state == initial
     moves.inject(state) {|state, move| move.execute(state) }
   end
 
@@ -48,10 +49,10 @@ def initial_state(size)
   (97..(97+size-1)).map(&:chr)
 end
 
-def parse(input)
+def parse(input, size)
   input.split(",").map do |move|
     case move[0]
-    when "s" then Spin.new(move[1..-1].to_i)
+    when "s" then Spin.new(move[1..-1].to_i, size)
     when "x" then Exchange.new(*move[1..-1].split("/").map(&:to_i))
     when "p" then Partner.new(move[1], move[3])
     else raise "Unknown move found: #{move.inspect}"
@@ -62,7 +63,7 @@ end
 example_input = "s1,x3/4,pe/b"
 puzzle_input = File.read("../inputs/16").chomp
 
-part_one(example_input, 5)
-part_one(puzzle_input, 16)
+#part_one(example_input, 5)
+#part_one(puzzle_input, 16)
 
 part_two(puzzle_input, 16)
