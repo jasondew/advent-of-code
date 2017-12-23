@@ -6,7 +6,7 @@ def part_one(input)
   rules = parse(input)
   pattern = initial_pattern
 
-  5.times do
+  18.times do
     size = pattern.split("/").first.size
     puts "\n"
     puts "size = #{size}"
@@ -14,36 +14,28 @@ def part_one(input)
 
     if (size % 2).zero?
       submatrices = split(pattern, 2)
-      submatrices.map! {|submatrix| evaluate(submatrix, rules) }
-      new_size = Math.sqrt(submatrices.join.delete("/").size).to_i
-      groups = Math.sqrt(new_size).to_i
-      p submatrices
-      puts "new_size=#{new_size} groups=#{groups}"
-      pattern = submatrices.in_groups_of(groups).map do |a, b, c, d|
-        x = unpack(a).zip(unpack(b))
-        x = x.zip(unpack(c)) if c
-        x = x.zip(unpack(d)) if d
-        x.map(&:join).join("/")
-      end.join("/")
     elsif (size % 3).zero?
       submatrices = split(pattern, 3)
-      submatrices.map! {|submatrix| evaluate(submatrix, rules) }
-      new_size = Math.sqrt(submatrices.join.delete("/").size).to_i
-      groups = Math.sqrt(new_size).to_i
-      if submatrices.size == 1
-        pattern = submatrices.first
-      else
-        pattern = submatrices.in_groups_of(groups).map do |a, b, c|
-          x = unpack(a).zip(unpack(b))
-          x = x.zip(unpack(c)) if c
-          x.map(&:join).join("/")
-        end.join("/")
-      end
     else
       raise "Pattern not divisble by 2 or 3"
     end
 
-    puts pattern
+    submatrices.map! {|submatrix| evaluate(submatrix, rules) }
+
+    if submatrices.size == 1
+      pattern = submatrices.first
+    else
+      new_size = Math.sqrt(submatrices.join.delete("/").size).to_i
+      groups = new_size / submatrices.first.split("/").first.size
+      puts "new_size=#{new_size} submatrices.size=#{submatrices.size} groups=#{groups}"
+      pattern = submatrices.in_groups_of(groups).map do |gs|
+        x = unpack(gs.shift)
+        gs.each {|g| x = x.zip(unpack(g)) }
+        x.map(&:join).join("/")
+      end.join("/")
+    end
+
+#    puts pattern
   end
 
   puts "\n"
