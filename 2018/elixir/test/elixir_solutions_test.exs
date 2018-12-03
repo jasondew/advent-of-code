@@ -3,4 +3,5 @@ defmodule ElixirSolutionsTest do
 
   doctest ElixirSolutions.DayOne
   doctest ElixirSolutions.DayTwo
+  doctest ElixirSolutions.DayThree
 end
