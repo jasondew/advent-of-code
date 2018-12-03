@@ -14,6 +14,7 @@ defmodule ElixirSolutions do
   def day_three do
     input = day_input("03")
     IO.puts("Part 1: #{ElixirSolutions.DayThree.part_one(input)}")
+    IO.puts("Part 2: #{ElixirSolutions.DayThree.part_two(input)}")
   end
 
   defp day_input(day) do
