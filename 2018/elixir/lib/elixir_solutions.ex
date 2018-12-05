@@ -23,6 +23,12 @@ defmodule ElixirSolutions do
     IO.puts("Part 2: #{ElixirSolutions.DayFour.part_two(input)}")
   end
 
+  def day_five do
+    input = day_input("05")
+    IO.puts("Part 1: #{ElixirSolutions.DayFive.part_one(input)}")
+    IO.puts("Part 2: #{ElixirSolutions.DayFive.part_two(input)}")
+  end
+
   defp day_input(day) do
     {:ok, input} = File.read("../inputs/#{day}")
     String.trim(input)
