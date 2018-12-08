@@ -59,7 +59,7 @@ defmodule ElixirSolutions.DaySeven do
     defstruct [:base_time, :pending, :in_progress, :complete]
   end
 
-  def part_two(input, worker_count \\ 5, base_time \\ 60) do
+  def part_two(input, worker_count \\ 5, base_time \\ 60, debug \\ false) do
     requirements = parse_requirements(input)
     preconditions = find_preconditions(requirements)
 
@@ -74,13 +74,12 @@ defmodule ElixirSolutions.DaySeven do
       for i <- 1..worker_count,
           do: %Worker{name: "Worker #{i}", current_step: nil, time_left: 0}
 
-    print_debug_header_line(worker_count)
-    run(preconditions, step_tracker, workers, 0)
+    print_debug_header_line(debug, worker_count)
+    run(debug, preconditions, step_tracker, workers, 0)
   end
 
-  defp run(preconditions, step_tracker, workers, time) do
+  defp run(debug, preconditions, step_tracker, workers, time) do
     if Enum.count(step_tracker.pending) == 0 and Enum.count(step_tracker.in_progress) == 0 do
-      IO.puts("DONE!")
       time - 1
     else
       {updated_workers, updated_step_tracker} =
@@ -88,9 +87,9 @@ defmodule ElixirSolutions.DaySeven do
           run_worker(worker, step_tracker, preconditions)
         end)
 
-      print_debug_line(time + 1, updated_workers, updated_step_tracker)
+      print_debug_line(debug, time + 1, updated_workers, updated_step_tracker)
 
-      run(preconditions, updated_step_tracker, updated_workers, time + 1)
+      run(debug, preconditions, updated_step_tracker, updated_workers, time + 1)
     end
   end
 
@@ -146,28 +145,32 @@ defmodule ElixirSolutions.DaySeven do
     |> (fn code -> code - 64 + base_time end).()
   end
 
-  defp print_debug_header_line(worker_count) do
-    ["\n\n  Second   "]
-    |> Enum.concat(
-      1..worker_count
-      |> Enum.map(fn index -> "Worker #{Integer.to_string(index)}" end)
-      |> Enum.intersperse("   ")
-    )
-    |> Enum.concat(["   Done"])
-    |> Enum.join()
-    |> IO.puts()
+  defp print_debug_header_line(debug, worker_count) do
+    if debug do
+      ["\n\n  Second   "]
+      |> Enum.concat(
+        1..worker_count
+        |> Enum.map(fn index -> "Worker #{Integer.to_string(index)}" end)
+        |> Enum.intersperse("   ")
+      )
+      |> Enum.concat(["   Done"])
+      |> Enum.join()
+      |> IO.puts()
+    end
   end
 
-  defp print_debug_line(time, workers, step_tracker) do
-    ["  #{time |> Integer.to_string() |> String.pad_leading(4, " ")}        "]
-    |> Enum.concat(
-      workers
-      |> Enum.map(fn worker -> String.pad_leading(worker.current_step || ".", 1, " ") end)
-      |> Enum.intersperse("          ")
-    )
-    |> Enum.concat(["       ", step_tracker.complete])
-    |> Enum.join()
-    |> IO.puts()
+  defp print_debug_line(debug, time, workers, step_tracker) do
+    if debug do
+      ["  #{time |> Integer.to_string() |> String.pad_leading(4, " ")}        "]
+      |> Enum.concat(
+        workers
+        |> Enum.map(fn worker -> String.pad_leading(worker.current_step || ".", 1, " ") end)
+        |> Enum.intersperse("          ")
+      )
+      |> Enum.concat(["       ", step_tracker.complete])
+      |> Enum.join()
+      |> IO.puts()
+    end
   end
 
   # -----------------------------------------------------------------------------
