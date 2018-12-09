@@ -9,4 +9,5 @@ defmodule ElixirSolutionsTest do
   doctest ElixirSolutions.DaySix
   doctest ElixirSolutions.DaySeven
   doctest ElixirSolutions.DayEight
+  doctest ElixirSolutions.DayNine
 end
