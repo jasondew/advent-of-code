@@ -57,6 +57,12 @@ defmodule ElixirSolutions do
     ElixirSolutions.DayTen.parts_one_and_two(day_input("10"), 11_000, print_min: true)
   end
 
+  def day_eleven do
+    input = day_input("11")
+    IO.puts("Part 1: #{inspect(ElixirSolutions.DayEleven.part_one(input))}")
+    IO.puts("Part 2: #{inspect(ElixirSolutions.DayEleven.part_two(input))}")
+  end
+
   def day_input(day) do
     {:ok, input} = File.read("../inputs/#{day}")
     String.trim(input)
