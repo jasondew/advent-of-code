@@ -66,7 +66,7 @@ defmodule ElixirSolutions do
   def day_twelve do
     input = day_input("12")
     IO.puts("Part 1: #{inspect(ElixirSolutions.DayTwelve.part_one(input))}")
-    IO.puts("Part 2: #{inspect(ElixirSolutions.DayTwelve.part_two(input))}")
+    IO.puts("Part 2: #{inspect(ElixirSolutions.DayTwelve.part_two())}")
   end
 
   def day_input(day) do
