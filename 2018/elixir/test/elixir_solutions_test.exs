@@ -17,4 +17,5 @@ defmodule ElixirSolutionsTest do
   doctest ElixirSolutions.DayFourteen
   doctest ElixirSolutions.DayFifteen, import: true
   doctest ElixirSolutions.DaySixteen, import: true
+  doctest ElixirSolutions.DayNineteen, import: true
 end
