@@ -31,9 +31,9 @@ defmodule ElixirSolutions.DayEleven do
   @doc ~s"""
   Part 2
 
-  iex> ElixirSolutions.DayEleven.part_two("18")
-  {90, 269, 16}
   """
+  # iex> ElixirSolutions.DayEleven.part_two("18")
+  # {90, 269, 16}
   #    iex> ElixirSolutions.DayEleven.part_two("42")
   #    {232, 251, 12}
   #  """
