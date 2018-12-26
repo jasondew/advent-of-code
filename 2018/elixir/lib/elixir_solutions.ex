@@ -89,8 +89,14 @@ defmodule ElixirSolutions do
 
   def day_nineteen do
     input = day_input("19")
-    IO.puts("Part 1: #{inspect(ElixirSolutions.DayNineteen.part_one(input))}")
+    #    IO.puts("Part 1: #{inspect(ElixirSolutions.DayNineteen.part_one(input))}")
     IO.puts("Part 2: #{inspect(ElixirSolutions.DayNineteen.part_two(input))}")
+  end
+
+  def day_twenty_three do
+    input = day_input("23")
+    IO.puts("Part 1: #{inspect(ElixirSolutions.DayTwentyThree.part_one(input))}")
+    #    IO.puts("Part 2: #{inspect(ElixirSolutions.DayTwentyThree.part_two(input))}")
   end
 
   def day_input(day, trim \\ true) do
