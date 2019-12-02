@@ -9,6 +9,12 @@ defmodule AdventOfCode2019 do
     IO.puts("Day 1, part 2 answer: #{DayOne.part_two(input)}")
   end
 
+  def day_two_answers do
+    input = day_input("02") |> to_integers()
+    IO.puts("Day 1, part 1 answer: #{DayOne.part_one(input)}")
+    IO.puts("Day 1, part 2 answer: #{DayOne.part_two(input)}")
+  end
+
   ## PRIVATE FUNCTIONS ##
 
   defp day_input(day, trim \\ true) do
