@@ -4,7 +4,8 @@ defmodule DayTwo do
   """
 
   def part_one(input) do
-    run(input, 12, 2)
+    intcode = Conversions.to_integers(input, ",")
+    run(intcode, 12, 2)
   end
 
   @doc """
@@ -12,6 +13,8 @@ defmodule DayTwo do
   """
 
   def part_two(input) do
+    intcode = Conversions.to_integers(input, ",")
+
     all_nouns_and_verbs =
       for noun <- 0..99, verb <- 0..99 do
         {noun, verb}
@@ -19,7 +22,7 @@ defmodule DayTwo do
 
     {noun, verb} =
       Enum.find(all_nouns_and_verbs, fn {noun, verb} ->
-        run(input, noun, verb) == 19_690_720
+        run(intcode, noun, verb) == 19_690_720
       end)
 
     noun * 100 + verb
@@ -44,7 +47,9 @@ defmodule DayTwo do
   """
 
   def step(input, position) do
-    [operation, arg1_position, arg2_position, result_position] = Enum.slice(input, position, 4)
+    [operation, arg1_position, arg2_position, result_position] =
+      Enum.slice(input, position, 4)
+
     arg1 = Enum.at(input, arg1_position)
     arg2 = Enum.at(input, arg2_position)
 

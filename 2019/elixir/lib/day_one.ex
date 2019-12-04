@@ -2,12 +2,13 @@ defmodule DayOne do
   @doc """
     Part 1
 
-    iex> DayOne.part_one([12, 14, 1_969, 100_756])
+    iex> DayOne.part_one("12\\n14\\n1969\\n100756")
     34_241
   """
 
-  def part_one(module_masses) do
-    module_masses
+  def part_one(input) do
+    input
+    |> Conversions.to_integers()
     |> Enum.map(&fuel_required/1)
     |> Enum.sum()
   end
@@ -15,12 +16,13 @@ defmodule DayOne do
   @doc """
     Part 2
 
-    iex> DayOne.part_two([14, 1_969, 100_756])
+    iex> DayOne.part_two("14\\n1969\\n100756")
     51_314
   """
 
-  def part_two(module_masses) do
-    module_masses
+  def part_two(input) do
+    input
+    |> Conversions.to_integers()
     |> Enum.map(&fuel_required_including_fuel_mass/1)
     |> Enum.sum()
   end
