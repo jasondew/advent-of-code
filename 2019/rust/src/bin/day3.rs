@@ -268,9 +268,9 @@ fn signal_delay(&point: &Point, line_segments: &Vec<LineSegment>) -> i32 {
                         y,
                     } => {
                         if point.y == y && point.x >= from_x && point.x <= to_x {
-                            (total + (point.x - from_x).abs(), true)
+                            (total + point.x - from_x, true)
                         } else {
-                            (total + (to_x - from_x).abs(), false)
+                            (total + to_x - from_x, false)
                         }
                     }
                     LineSegment::Vertical {
@@ -278,9 +278,9 @@ fn signal_delay(&point: &Point, line_segments: &Vec<LineSegment>) -> i32 {
                         y: (from_y, to_y),
                     } => {
                         if point.x == x && point.y >= from_y && point.y <= to_y {
-                            (total + (point.y - from_y).abs(), true)
+                            (total + point.y - from_y, true)
                         } else {
-                            (total + (to_y - from_y).abs(), false)
+                            (total + to_y - from_y, false)
                         }
                     }
                 }
