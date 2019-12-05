@@ -3,53 +3,92 @@ defmodule DayFive do
     Part 1
   """
   def part_one(input) do
-    tape = Conversions.to_integers(input, ",")
-    outputs = run(tape, 0, [1])
+    input
+    |> Conversions.to_integers(",")
+    |> run(0, [1])
+    |> IO.inspect()
   end
 
+  @doc """
+    iex> DayFive.run([1,9,10,3,2,3,11,0,99,30,40,50], 0, [], [])
+    {[3500], []}
+  """
   def run(tape, ip, inputs, outputs \\ []) do
-    [operation, arg1_position, arg2_position, result_position] = Enum.slice(tape, ip, 4)
+    instruction = parse_instruction(tape, ip) |> IO.inspect()
 
-    arg1 = Enum.at(tape, arg1_position)
-    arg2 = Enum.at(tape, arg2_position)
-
-    case operation do
+    case instruction.opcode do
       1 ->
+        a = get_value(tape, Enum.at(instruction.parameters, 0))
+        b = get_value(tape, Enum.at(instruction.parameters, 1))
+        result_position = Enum.at(instruction.parameters, 2)
+
         tape
-        |> List.replace_at(result_position, arg1 + arg2)
+        |> set_value(a + b, result_position)
         |> run(ip + 4, inputs, outputs)
 
       2 ->
+        a = get_value(tape, Enum.at(instruction.parameters, 0))
+        b = get_value(tape, Enum.at(instruction.parameters, 1))
+        result_position = Enum.at(instruction.parameters, 2)
+
         tape
-        |> List.replace_at(result_position, arg1 * arg2)
+        |> set_value(a - b, result_position)
         |> run(ip + 4, inputs, outputs)
 
       3 ->
+        {:position, position} = Enum.at(instruction.parameters, 0)
+        {input, inputs} = List.pop_at(inputs, 0)
+
         tape
+        |> List.replace_at(position, input)
+        |> run(ip + 2, inputs, outputs)
+
+      4 ->
+        output = get_value(tape, Enum.at(instruction.parameters, 0))
+        run(tape, ip + 2, inputs, [output | outputs])
 
       99 ->
-        tape
+        {tape, outputs}
     end
+  end
+
+  defp get_value(tape, {:position, position}), do: Enum.at(tape, position)
+  defp get_value(_tape, {:immediate, value}), do: value
+
+  defp set_value(tape, value, {:position, position}) do
+    List.replace_at(tape, position, value)
   end
 
   defp parse_instruction(tape, position) do
     instruction = Enum.at(tape, position)
-    [parameter_modes_string, opcode_string] = String.split_at(instruction, -2)
-    opcode = String.to_integer(opcode_string)
-    parameter_count = parameter_count(opcode)
-    parameter_modes = List.duplicate(0, parameter_count)
 
-    parameter_modes_string
-    |> String.graphemes()
-    |> Enum.with_index()
-    |> Enum.each(fn {mode_string, index} ->
-      List.replace_at(parameter_modes, index, String.to_integer(mode_string))
-    end)
+    {parameter_modes_string, opcode_string} =
+      instruction
+      |> Integer.to_string()
+      |> String.split_at(-2)
+
+    opcode = String.to_integer(opcode_string)
+
+    parameter_modes =
+      parameter_modes_string
+      |> String.reverse()
+      |> String.graphemes()
+      |> Enum.map(&String.to_integer/1)
+
+    parameters =
+      tape
+      |> Enum.slice(position + 1, parameter_count(opcode))
+      |> Enum.with_index()
+      |> Enum.map(fn {parameter, index} ->
+        case Enum.at(parameter_modes, index, 0) do
+          0 -> {:position, parameter}
+          1 -> {:immediate, parameter}
+        end
+      end)
 
     %{
       opcode: opcode,
-      parameter_count: parameter_count,
-      parameter_modes: parameter_modes
+      parameters: parameters
     }
   end
 
