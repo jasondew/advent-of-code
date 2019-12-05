@@ -6,50 +6,91 @@ defmodule DayFive do
     input
     |> Conversions.to_integers(",")
     |> run(0, [1])
-    |> IO.inspect()
+    |> List.first()
   end
 
   @doc """
-    iex> DayFive.run([1,9,10,3,2,3,11,0,99,30,40,50], 0, [], [])
-    {[3500], []}
+    Part 2
   """
+  def part_two(input) do
+    input
+    |> Conversions.to_integers(",")
+    |> run(0, [5])
+    |> List.first()
+  end
+
   def run(tape, ip, inputs, outputs \\ []) do
-    instruction = parse_instruction(tape, ip) |> IO.inspect()
+    instruction = parse_instruction(tape, ip)
 
-    case instruction.opcode do
-      1 ->
-        a = get_value(tape, Enum.at(instruction.parameters, 0))
-        b = get_value(tape, Enum.at(instruction.parameters, 1))
-        result_position = Enum.at(instruction.parameters, 2)
-
-        tape
-        |> set_value(a + b, result_position)
-        |> run(ip + 4, inputs, outputs)
-
-      2 ->
-        a = get_value(tape, Enum.at(instruction.parameters, 0))
-        b = get_value(tape, Enum.at(instruction.parameters, 1))
-        result_position = Enum.at(instruction.parameters, 2)
+    case instruction.operation do
+      :add ->
+        a = get_value(tape, param(instruction, 0))
+        b = get_value(tape, param(instruction, 1))
 
         tape
-        |> set_value(a - b, result_position)
-        |> run(ip + 4, inputs, outputs)
+        |> set_value(a + b, param(instruction, 2))
+        |> run(ip + instruction.size, inputs, outputs)
 
-      3 ->
-        {:position, position} = Enum.at(instruction.parameters, 0)
+      :mul ->
+        a = get_value(tape, param(instruction, 0))
+        b = get_value(tape, param(instruction, 1))
+
+        tape
+        |> set_value(a * b, param(instruction, 2))
+        |> run(ip + instruction.size, inputs, outputs)
+
+      :in ->
         {input, inputs} = List.pop_at(inputs, 0)
 
         tape
-        |> List.replace_at(position, input)
-        |> run(ip + 2, inputs, outputs)
+        |> set_value(input, param(instruction, 0))
+        |> run(ip + instruction.size, inputs, outputs)
 
-      4 ->
-        output = get_value(tape, Enum.at(instruction.parameters, 0))
-        run(tape, ip + 2, inputs, [output | outputs])
+      :out ->
+        output = get_value(tape, param(instruction, 0))
+        run(tape, ip + instruction.size, inputs, [output | outputs])
 
-      99 ->
-        {tape, outputs}
+      :jit ->
+        if get_value(tape, param(instruction, 0)) != 0 do
+          new_ip = get_value(tape, param(instruction, 1))
+          run(tape, new_ip, inputs, outputs)
+        else
+          run(tape, ip + instruction.size, inputs, outputs)
+        end
+
+      :jif ->
+        if get_value(tape, param(instruction, 0)) == 0 do
+          new_ip = get_value(tape, param(instruction, 1))
+          run(tape, new_ip, inputs, outputs)
+        else
+          run(tape, ip + instruction.size, inputs, outputs)
+        end
+
+      :lt ->
+        if get_value(tape, param(instruction, 0)) <
+             get_value(tape, param(instruction, 1)) do
+          set_value(tape, 1, param(instruction, 2))
+        else
+          set_value(tape, 0, param(instruction, 2))
+        end
+        |> run(ip + instruction.size, inputs, outputs)
+
+      :eq ->
+        if get_value(tape, param(instruction, 0)) ==
+             get_value(tape, param(instruction, 1)) do
+          set_value(tape, 1, param(instruction, 2))
+        else
+          set_value(tape, 0, param(instruction, 2))
+        end
+        |> run(ip + instruction.size, inputs, outputs)
+
+      :exit ->
+        outputs
     end
+  end
+
+  defp param(instruction, index) do
+    Enum.at(instruction.params, index)
   end
 
   defp get_value(tape, {:position, position}), do: Enum.at(tape, position)
@@ -62,40 +103,46 @@ defmodule DayFive do
   defp parse_instruction(tape, position) do
     instruction = Enum.at(tape, position)
 
-    {parameter_modes_string, opcode_string} =
+    {param_modes_string, opcode_string} =
       instruction
       |> Integer.to_string()
       |> String.split_at(-2)
 
     opcode = String.to_integer(opcode_string)
+    {operation, param_count} = translate_opcode(opcode)
 
-    parameter_modes =
-      parameter_modes_string
+    param_modes =
+      param_modes_string
       |> String.reverse()
       |> String.graphemes()
       |> Enum.map(&String.to_integer/1)
 
-    parameters =
+    params =
       tape
-      |> Enum.slice(position + 1, parameter_count(opcode))
+      |> Enum.slice(position + 1, param_count)
       |> Enum.with_index()
-      |> Enum.map(fn {parameter, index} ->
-        case Enum.at(parameter_modes, index, 0) do
-          0 -> {:position, parameter}
-          1 -> {:immediate, parameter}
+      |> Enum.map(fn {param, index} ->
+        case Enum.at(param_modes, index, 0) do
+          0 -> {:position, param}
+          1 -> {:immediate, param}
         end
       end)
 
     %{
-      opcode: opcode,
-      parameters: parameters
+      operation: operation,
+      params: params,
+      size: param_count + 1
     }
   end
 
-  defp parameter_count(1), do: 3
-  defp parameter_count(2), do: 3
-  defp parameter_count(3), do: 1
-  defp parameter_count(4), do: 1
-  defp parameter_count(99), do: 0
-  defp parameter_count(opcode), do: raise("invalid opcode: #{opcode}")
+  defp translate_opcode(1), do: {:add, 3}
+  defp translate_opcode(2), do: {:mul, 3}
+  defp translate_opcode(3), do: {:in, 1}
+  defp translate_opcode(4), do: {:out, 1}
+  defp translate_opcode(5), do: {:jit, 2}
+  defp translate_opcode(6), do: {:jif, 2}
+  defp translate_opcode(7), do: {:lt, 3}
+  defp translate_opcode(8), do: {:eq, 3}
+  defp translate_opcode(99), do: {:exit, 0}
+  defp translate_opcode(opcode), do: raise("invalid opcode: #{opcode}")
 end

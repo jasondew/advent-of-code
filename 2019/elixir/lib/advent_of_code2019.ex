@@ -30,6 +30,7 @@ defmodule AdventOfCode2019 do
   def day_five_answers do
     input = day_input("05")
     IO.puts("Day 5, part 1 answer: #{DayFive.part_one(input)}")
+    IO.puts("Day 5, part 2 answer: #{DayFive.part_two(input)}")
   end
 
   ## PRIVATE FUNCTIONS ##
