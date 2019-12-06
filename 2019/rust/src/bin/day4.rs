@@ -1,12 +1,18 @@
 use std::fs;
 use std::io;
 
-fn non_decreasing(number: u32) -> bool {
-    false
-}
+fn to_digits(n: u32) -> Vec<u8> {
+    let mut digits: Vec<u8> = Vec::new();
+    let mut n = n;
 
-fn two_in_a_row(number: u32) -> bool {
-    false
+    while n > 9 {
+        digits.push((n % 10) as u8);
+        n = n / 10;
+    }
+    digits.push(n as u8);
+    digits.reverse();
+
+    digits
 }
 
 fn main() -> io::Result<()> {
@@ -20,7 +26,23 @@ fn main() -> io::Result<()> {
     {
         let mut count: u16 = 0;
         for number in *from..*to {
-            if non_decreasing(number) && two_in_a_row(number) {
+            let digits = to_digits(number);
+            let mut previous_digit: u8 = 0;
+            let mut non_decreasing = true;
+            let mut two_in_a_row = false;
+
+            digits.iter().for_each(|digit| {
+                if digit < &previous_digit {
+                    non_decreasing = false
+                };
+                if digit == &previous_digit {
+                    two_in_a_row = true
+                };
+
+                previous_digit = *digit
+            });
+
+            if non_decreasing && two_in_a_row {
                 count = count + 1
             }
         }
