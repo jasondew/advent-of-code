@@ -4,8 +4,9 @@ defmodule DayTwo do
   """
 
   def part_one(input) do
-    intcode = Conversions.to_integers(input, ",")
-    run(intcode, 12, 2)
+    input
+    |> Conversions.to_integers(",")
+    |> run(12, 2)
   end
 
   @doc """
@@ -37,35 +38,8 @@ defmodule DayTwo do
     input
     |> List.replace_at(1, noun)
     |> List.replace_at(2, verb)
-    |> step(0)
+    |> IntcodeVM.run()
+    |> Map.get(:intcode)
     |> List.first()
-  end
-
-  @doc """
-    iex> DayTwo.step([1,9,10,3,2,3,11,0,99,30,40,50], 0)
-    [3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]
-  """
-
-  def step(input, position) do
-    [operation, arg1_position, arg2_position, result_position] =
-      Enum.slice(input, position, 4)
-
-    arg1 = Enum.at(input, arg1_position)
-    arg2 = Enum.at(input, arg2_position)
-
-    case operation do
-      1 ->
-        input
-        |> List.replace_at(result_position, arg1 + arg2)
-        |> step(position + 4)
-
-      2 ->
-        input
-        |> List.replace_at(result_position, arg1 * arg2)
-        |> step(position + 4)
-
-      99 ->
-        input
-    end
   end
 end

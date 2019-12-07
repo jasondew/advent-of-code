@@ -22,10 +22,10 @@ defmodule DaySix do
     4
   """
   def part_two(input) do
-    orbit_map = build_orbit_map(input) |> IO.inspect()
+    orbit_map = build_orbit_map(input)
 
-    my_orbits = orbits(orbit_map, "YOU") |> IO.inspect(label: "YOU")
-    santas_orbits = orbits(orbit_map, "SAN") |> IO.inspect(label: "SAN")
+    my_orbits = orbits(orbit_map, "YOU")
+    santas_orbits = orbits(orbit_map, "SAN")
     common_object = Enum.find(my_orbits, &Enum.member?(santas_orbits, &1))
 
     depth(my_orbits, common_object) + depth(santas_orbits, common_object)
@@ -58,7 +58,7 @@ defmodule DaySix do
   end
 
   defp depth([], _object), do: -1
-  defp depth([object | orbits], object), do: 0
+  defp depth([object | _orbits], object), do: 0
 
   defp depth([_non_matching_object | orbits], object),
     do: 1 + depth(orbits, object)
