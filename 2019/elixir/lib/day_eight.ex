@@ -26,8 +26,23 @@ defmodule DayEight do
   ## PRIVATE FUNCTIONS ##
 
   defp flatten(image) do
-    image
+    Enum.reduce(image, &composite/2)
   end
+
+  defp composite(layer, image) do
+    image
+    |> Enum.zip(layer)
+    |> Enum.map(fn {front_row, back_row} ->
+      front_row
+      |> Enum.zip(back_row)
+      |> Enum.map(fn {front, back} -> composite_pixel(front, back) end)
+    end)
+  end
+
+  defp composite_pixel(0, _back), do: 0
+  defp composite_pixel(1, _back), do: 1
+  defp composite_pixel(2, back), do: back
+  defp composite_pixel(pixel, _), do: raise("invalid pixel: #{pixel}")
 
   defp checksum(image) do
     layer = Enum.min_by(image, &count(&1, 0))

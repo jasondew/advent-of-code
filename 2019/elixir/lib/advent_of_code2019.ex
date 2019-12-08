@@ -48,6 +48,18 @@ defmodule AdventOfCode2019 do
   def day_eight do
     input = day_input("08")
     IO.puts("Day 8, part 1 answer: #{DayEight.part_one(input, 25, 6)}")
+    IO.puts("Day 8, part 2 answer:")
+
+    input
+    |> DayEight.part_two(25, 6)
+    |> Enum.each(fn row ->
+      row
+      |> Enum.map(fn
+        0 -> ".."
+        1 -> "##"
+      end)
+      |> IO.puts()
+    end)
   end
 
   ## PRIVATE FUNCTIONS ##
