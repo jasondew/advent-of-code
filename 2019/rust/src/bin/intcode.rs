@@ -24,6 +24,10 @@ enum Operation {
     Mul(Param, Param, usize),
     In(usize),
     Out(usize),
+    JumpIfTrue(Param, Param),
+    JumpIfFalse(Param, Param),
+    LessThan(Param, Param, usize),
+    Equal(Param, Param, usize),
     Done,
 }
 
@@ -59,6 +63,36 @@ pub fn run(intcode: &mut Vec<i32>, inputs: &mut Vec<i32>) -> Configuration {
             Operation::Out(from) => {
                 output = Some(intcode[from]);
                 ip += 2
+            }
+            Operation::JumpIfTrue(predicate, jump_to) => {
+                if value(intcode, predicate) != 0 {
+                    ip = value(intcode, jump_to) as usize
+                } else {
+                    ip += 3
+                }
+            }
+            Operation::JumpIfFalse(predicate, jump_to) => {
+                if value(intcode, predicate) == 0 {
+                    ip = value(intcode, jump_to) as usize
+                } else {
+                    ip += 3
+                }
+            }
+            Operation::LessThan(a, b, output) => {
+                if value(intcode, a) < value(intcode, b) {
+                    intcode[output] = 1
+                } else {
+                    intcode[output] = 0
+                }
+                ip += 4
+            }
+            Operation::Equal(a, b, output) => {
+                if value(intcode, a) == value(intcode, b) {
+                    intcode[output] = 1
+                } else {
+                    intcode[output] = 0
+                }
+                ip += 4
             }
             Operation::Done => {
                 break Configuration {
@@ -105,6 +139,24 @@ fn parse_operation(intcode: &Vec<i32>, ip: usize) -> Operation {
         ),
         3 => Operation::In(intcode[ip + 1] as usize),
         4 => Operation::Out(intcode[ip + 1] as usize),
+        5 => Operation::JumpIfTrue(
+            parse_param(intcode, ip, param_modes, 0),
+            parse_param(intcode, ip, param_modes, 1),
+        ),
+        6 => Operation::JumpIfFalse(
+            parse_param(intcode, ip, param_modes, 0),
+            parse_param(intcode, ip, param_modes, 1),
+        ),
+        7 => Operation::LessThan(
+            parse_param(intcode, ip, param_modes, 0),
+            parse_param(intcode, ip, param_modes, 1),
+            intcode[ip + 3] as usize,
+        ),
+        8 => Operation::Equal(
+            parse_param(intcode, ip, param_modes, 0),
+            parse_param(intcode, ip, param_modes, 1),
+            intcode[ip + 3] as usize,
+        ),
         99 => Operation::Done,
         _ => panic!("invalid opcode: {}", opcode),
     }
