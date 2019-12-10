@@ -44,13 +44,13 @@ defmodule DaySeven do
 
   defp run_with_phases(intcode, phases) do
     Enum.reduce(phases, 0, fn phase, input ->
-      IntcodeVM.run_for_output(intcode, [phase, input])
+      Intcode.run_for_output(intcode, [phase, input])
     end)
   end
 
   defp run_with_phases_and_feedback(intcode, phases) do
     phases
-    |> Enum.map(fn phase -> IntcodeVM.run(intcode, [phase]) end)
+    |> Enum.map(fn phase -> Intcode.run(intcode, [phase]) end)
     |> run_loop(0)
   end
 
@@ -58,7 +58,7 @@ defmodule DaySeven do
     {output, processed_amps} =
       Enum.reduce(amps, {input, []}, fn amp, {input, processed_amps} ->
         %{outputs: [output]} =
-          processed_amp = IntcodeVM.run(amp.intcode, [input], amp.ip)
+          processed_amp = Intcode.run(amp.memory, [input], amp.ip)
 
         {output, [processed_amp | processed_amps]}
       end)

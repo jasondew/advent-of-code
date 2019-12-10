@@ -1,4 +1,4 @@
-defmodule DayFive do
+defmodule DayNine do
   @doc """
     Part 1
   """
@@ -14,6 +14,6 @@ defmodule DayFive do
   def part_two(input) do
     input
     |> Conversions.to_integers(",")
-    |> Intcode.run_for_output([5])
+    |> Intcode.run_for_output([2])
   end
 end

@@ -38,8 +38,8 @@ defmodule DayTwo do
     input
     |> List.replace_at(1, noun)
     |> List.replace_at(2, verb)
-    |> IntcodeVM.run()
-    |> Map.get(:intcode)
+    |> Intcode.run([])
+    |> Map.get(:memory)
     |> List.first()
   end
 end

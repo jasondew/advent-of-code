@@ -9,4 +9,5 @@ defmodule AdventOfCode2019Test do
   doctest DaySix
   doctest DaySeven
   doctest DayEight
+  doctest DayNine
 end
