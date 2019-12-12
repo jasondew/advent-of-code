@@ -10,6 +10,15 @@ defmodule Intcode do
               iterations: 0
   end
 
+  def new(memory, inputs \\ [], ip \\ 0) do
+    %Configuration{
+      memory: memory,
+      size: Enum.count(memory),
+      inputs: inputs,
+      ip: ip
+    }
+  end
+
   def run_for_output(memory, inputs \\ []) do
     memory
     |> run(inputs)
@@ -18,12 +27,9 @@ defmodule Intcode do
   end
 
   def run(memory, inputs, ip \\ 0) do
-    run(%Configuration{
-      memory: memory,
-      size: Enum.count(memory),
-      inputs: inputs,
-      ip: ip
-    })
+    memory
+    |> new(inputs, ip)
+    |> run()
   end
 
   def run(%Configuration{ip: ip, bp: bp} = configuration) do

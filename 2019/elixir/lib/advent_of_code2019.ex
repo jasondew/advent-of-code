@@ -74,6 +74,23 @@ defmodule AdventOfCode2019 do
     IO.puts("Day 10, part 2 answer: #{DayTen.part_two(input)}")
   end
 
+  def day_eleven do
+    input = day_input("11")
+    IO.puts("Day 11, part 1 answer: #{DayEleven.part_one(input)}")
+    IO.puts("Day 11, part 2 answer:")
+
+    input
+    |> DayEleven.part_two()
+    |> Enum.each(fn row ->
+      row
+      |> Enum.map(fn
+        "." -> ".."
+        "#" -> "##"
+      end)
+      |> IO.puts()
+    end)
+  end
+
   ## PRIVATE FUNCTIONS ##
 
   defp day_input(day, trim \\ true) do
