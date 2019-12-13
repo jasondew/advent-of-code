@@ -97,6 +97,12 @@ defmodule AdventOfCode2019 do
     IO.puts("Day 12, part 2 answer: #{DayTwelve.part_two(input)}")
   end
 
+  def day_thirteen do
+    input = day_input("13")
+    IO.puts("Day 13, part 1 answer: #{DayThirteen.part_one(input)}")
+    IO.puts("Day 13, part 2 answer: #{DayThirteen.part_two(input)}")
+  end
+
   ## PRIVATE FUNCTIONS ##
 
   defp day_input(day, trim \\ true) do

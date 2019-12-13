@@ -10,13 +10,29 @@ defmodule Intcode do
               iterations: 0
   end
 
-  def new(memory, inputs \\ [], ip \\ 0) do
+  def new(value, inputs \\ [], ip \\ 0)
+
+  def new(string, inputs, ip) when is_binary(string) do
+    string
+    |> Conversions.to_integers(",")
+    |> new(inputs, ip)
+  end
+
+  def new(memory, inputs, ip) do
     %Configuration{
       memory: memory,
       size: Enum.count(memory),
       inputs: inputs,
       ip: ip
     }
+  end
+
+  def put_inputs(%Configuration{} = configuration, inputs) do
+    %{configuration | inputs: inputs}
+  end
+
+  def pop_outputs(%Configuration{outputs: outputs} = configuration) do
+    {Enum.reverse(outputs), Map.put(configuration, :outputs, [])}
   end
 
   def run_for_output(memory, inputs \\ []) do
@@ -26,7 +42,7 @@ defmodule Intcode do
     |> List.first()
   end
 
-  def run(memory, inputs, ip \\ 0) do
+  def run(memory, inputs, ip \\ 0) when is_list(memory) do
     memory
     |> new(inputs, ip)
     |> run()
