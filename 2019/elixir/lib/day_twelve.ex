@@ -15,7 +15,85 @@ defmodule DayTwelve do
     |> Enum.sum()
   end
 
+  def part_two(input) do
+    moons = parse(input)
+
+    x_period =
+      moons
+      |> Enum.map(fn %{position: {x, _, _}} -> x end)
+      |> List.to_tuple()
+      |> find_period()
+      |> IO.inspect(label: "x")
+
+    y_period =
+      moons
+      |> Enum.map(fn %{position: {_, y, _}} -> y end)
+      |> List.to_tuple()
+      |> find_period()
+      |> IO.inspect(label: "y")
+
+    z_period =
+      moons
+      |> Enum.map(fn %{position: {_, _, z}} -> z end)
+      |> List.to_tuple()
+      |> find_period()
+      |> IO.inspect(label: "z")
+
+    x_period
+    |> lcm(y_period)
+    |> lcm(z_period)
+  end
+
   ## PRIVATE FUNCTIONS
+
+  defp lcm(a, b), do: div(a, Integer.gcd(a, b)) * b
+
+  defp find_period(initial_positions, max_iterations \\ 1_000_000) do
+    Enum.reduce_while(
+      2..max_iterations,
+      {initial_positions, {0, 0, 0, 0}},
+      fn iteration, {positions, velocities} ->
+        {positions, velocities} = step_single_dimension(positions, velocities)
+
+        if positions == initial_positions do
+          {:halt, iteration}
+        else
+          {:cont, {positions, velocities}}
+        end
+      end
+    )
+  end
+
+  defp step_single_dimension({a, b, c, d}, {va, vb, vc, vd}) do
+    va =
+      va
+      |> apply_gravity(a, b)
+      |> apply_gravity(a, c)
+      |> apply_gravity(a, d)
+
+    vb =
+      vb
+      |> apply_gravity(b, a)
+      |> apply_gravity(b, c)
+      |> apply_gravity(b, d)
+
+    vc =
+      vc
+      |> apply_gravity(c, a)
+      |> apply_gravity(c, b)
+      |> apply_gravity(c, d)
+
+    vd =
+      vd
+      |> apply_gravity(d, a)
+      |> apply_gravity(d, b)
+      |> apply_gravity(d, c)
+
+    {
+      {a + va, b + vb, c + vc, d + vd},
+      {va, vb, vc, vd}
+    }
+  end
 
   defp total_energy(%{position: {x, y, z}, velocity: {vx, vy, vz}}) do
     (abs(x) + abs(y) + abs(z)) * (abs(vx) + abs(vy) + abs(vz))
@@ -35,8 +113,6 @@ defmodule DayTwelve do
     end)
   end
 
-  defp apply_gravity([], moons_done), do: moons_done
-
   defp apply_gravity(
          %{position: {x1, y1, z1}, velocity: {vx1, vy1, vz1}} = moon1,
          %{position: {x2, y2, z2}}
@@ -44,14 +120,14 @@ defmodule DayTwelve do
     %{
       moon1
       | velocity: {
-          apply_gravity(x1, x2, vx1),
-          apply_gravity(y1, y2, vy1),
-          apply_gravity(z1, z2, vz1)
+          apply_gravity(vx1, x1, x2),
+          apply_gravity(vy1, y1, y2),
+          apply_gravity(vz1, z1, z2)
         }
     }
   end
 
-  defp apply_gravity(x1, x2, vx) do
+  defp apply_gravity(vx, x1, x2) do
     cond do
       x1 > x2 -> vx - 1
       x1 < x2 -> vx + 1

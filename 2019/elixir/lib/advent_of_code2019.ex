@@ -94,7 +94,7 @@ defmodule AdventOfCode2019 do
   def day_twelve do
     input = day_input("12")
     IO.puts("Day 12, part 1 answer: #{DayTwelve.part_one(input)}")
-    #    IO.puts("Day 12, part 2 answer: #{DayTwelve.part_two(input)}")
+    IO.puts("Day 12, part 2 answer: #{DayTwelve.part_two(input)}")
   end
 
   ## PRIVATE FUNCTIONS ##
