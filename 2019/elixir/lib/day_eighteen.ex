@@ -16,52 +16,122 @@ defmodule DayEighteen do
     81
   """
   def part_one(input) do
-    map = parse(input)
-    {start, :start} = Enum.find(map, fn {_, type} -> type == :start end)
+    {map, keys, start} = parse(input)
+    :ets.new(:part1_cache, [:named_table])
 
-    keys =
-      Enum.reduce(map, %{}, fn
-        {location, {:key, key}}, keys -> Map.put(keys, key, location)
-        _, keys -> keys
-      end)
-
-    sorted_key_names = keys |> Map.keys() |> Enum.sort()
-
-    key_tree =
-      key_tree(map, keys, start)
-      |> Enum.sort_by(fn {{from, to}, {_, _, kc}} ->
-        if from == :start,
-          do: [Enum.count(kc), to],
-          else: [from, Enum.count(kc), to]
-      end)
-
-    :ets.new(:cache, [:named_table])
-
-    key_tree
-    |> shortest_tour(:start, sorted_key_names, [])
+    map
+    |> key_tree(keys, start)
+    |> shortest_tour(:start, key_names(keys), [], [], :part1_cache)
     |> elem(0)
+  end
+
+  @doc """
+    iex> DayEighteen.part_two("#######\\n#a.#Cd#\\n##...##\\n##.@.##\\n##...##\\n#cB#Ab#\\n#######")
+    8
+
+    iex> DayEighteen.part_two("###############\\n#d.ABC.#.....a#\\n######...######\\n######.@.######\\n######...######\\n#b.....#.....c#\\n###############")
+    24
+  """
+  def part_two(input) do
+    {map, keys, {x, y} = center} = parse(input)
+
+    map =
+      map
+      |> Map.put({x, y}, :wall)
+      |> Map.put({x - 1, y}, :wall)
+      |> Map.put({x + 1, y}, :wall)
+      |> Map.put({x, y - 1}, :wall)
+      |> Map.put({x, y + 1}, :wall)
+
+    1..4
+    |> Enum.map(fn quadrant ->
+      start = start(center, quadrant)
+
+      key_tree = key_tree(map, keys, start)
+
+      {required_key_names, assumed_key_names} =
+        partition_keys(keys, center, quadrant)
+
+      cache_name = String.to_atom("part2_quadrant#{quadrant}_cache")
+      :ets.new(cache_name, [:named_table])
+
+      shortest_tour(
+        key_tree,
+        :start,
+        required_key_names,
+        [],
+        assumed_key_names,
+        cache_name
+      )
+    end)
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.sum()
   end
 
   ## PRIVATE FUNCTIONS ##
 
-  defp shortest_tour(_key_tree, _key, all_keys, all_keys), do: {0, []}
+  defp start({x, y}, 1), do: {x - 1, y - 1}
+  defp start({x, y}, 2), do: {x + 1, y - 1}
+  defp start({x, y}, 3), do: {x - 1, y + 1}
+  defp start({x, y}, 4), do: {x + 1, y + 1}
 
-  defp shortest_tour(key_tree, key, all_keys, keys_collected) do
-    case :ets.lookup(:cache, {key, keys_collected}) do
+  defp partition_keys(keys, center, quadrant) do
+    {required, assumed} =
+      Enum.reduce(keys, {[], []}, fn {key_name, key_location},
+                                     {required, assumed} ->
+        if in_quadrant?(center, quadrant, key_location) do
+          {[key_name | required], assumed}
+        else
+          {required, [key_name | assumed]}
+        end
+      end)
+
+    {Enum.sort(required), Enum.sort(assumed)}
+  end
+
+  defp in_quadrant?({x, y}, 1, {kx, ky}), do: kx < x && ky < y
+  defp in_quadrant?({x, y}, 2, {kx, ky}), do: kx > x && ky < y
+  defp in_quadrant?({x, y}, 3, {kx, ky}), do: kx < x && ky > y
+  defp in_quadrant?({x, y}, 4, {kx, ky}), do: kx > x && ky > y
+
+  defp shortest_tour(
+         _key_tree,
+         _key,
+         all_keys,
+         all_keys,
+         _keys_assumed,
+         _cache
+       ),
+       do: {0, []}
+
+  defp shortest_tour(
+         key_tree,
+         key,
+         all_keys,
+         keys_collected,
+         keys_assumed,
+         cache
+       ) do
+    case :ets.lookup(cache, {key, keys_collected}) do
       [] ->
         min =
           key_tree
-          |> reachable_keys(key, keys_collected)
+          |> reachable_keys(key, Enum.concat(keys_collected, keys_assumed))
           |> Enum.map(fn {{_key, next_key},
                           {distance, _keys_required, keys_collected_during_path}} ->
+            keys_collected =
+              (keys_collected
+               |> Enum.concat(keys_collected_during_path)
+               |> Enum.sort()
+               |> Enum.uniq()) -- keys_assumed
+
             case shortest_tour(
                    key_tree,
                    next_key,
                    all_keys,
-                   keys_collected
-                   |> Enum.concat(keys_collected_during_path)
-                   |> Enum.sort()
-                   |> Enum.uniq()
+                   keys_collected,
+                   keys_assumed,
+                   cache
                  ) do
               {rest_distance, path} ->
                 {distance + rest_distance, [next_key | path]}
@@ -75,7 +145,7 @@ defmodule DayEighteen do
               Enum.min(values)
           end
 
-        :ets.insert(:cache, {{key, keys_collected}, min})
+        :ets.insert(cache, {{key, keys_collected}, min})
         min
 
       [{_cache_key, distance}] ->
@@ -96,21 +166,27 @@ defmodule DayEighteen do
   end
 
   defp key_tree(map, keys, start) do
-    Enum.reduce(Map.put(keys, :start, start), %{}, fn {key, location}, cache ->
+    Enum.reduce(Map.put(keys, :start, start), %{}, fn {key, location}, acc ->
       Enum.reduce(
         Map.delete(keys, key),
-        cache,
-        fn {other_key, other_location}, cache ->
+        acc,
+        fn {other_key, other_location}, acc ->
           case shortest_path(map, location, other_location) do
             :no_path ->
-              cache
+              acc
 
             result ->
-              Map.put(cache, {key, other_key}, result)
+              Map.put(acc, {key, other_key}, result)
           end
         end
       )
     end)
+  end
+
+  defp key_names(keys) do
+    keys
+    |> Map.keys()
+    |> Enum.sort()
   end
 
   defp shortest_path(_map, point, point), do: {0, []}
@@ -171,6 +247,19 @@ defmodule DayEighteen do
   end
 
   defp parse(input) do
+    map = parse_map(input)
+    {start, :start} = Enum.find(map, fn {_, type} -> type == :start end)
+
+    keys =
+      Enum.reduce(map, %{}, fn
+        {location, {:key, key}}, keys -> Map.put(keys, key, location)
+        _, keys -> keys
+      end)
+
+    {map, keys, start}
+  end
+
+  defp parse_map(input) do
     input
     |> String.split("\n")
     |> Enum.reduce({%{}, 0}, fn line, {map, y} ->
