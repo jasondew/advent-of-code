@@ -3,6 +3,11 @@ defmodule AdventOfCode2019 do
   Documentation for Advent of Code 2019.
   """
 
+  def day_input(day, trim \\ true) do
+    {:ok, input} = File.read("../inputs/#{day}")
+    if trim, do: String.trim(input), else: input
+  end
+
   def day_one do
     input = day_input("01")
     IO.puts("Day 1, part 1 answer: #{DayOne.part_one(input)}")
@@ -133,10 +138,9 @@ defmodule AdventOfCode2019 do
     IO.puts("Day 18, part 2 answer: #{DayEighteen.part_two(input)}")
   end
 
-  ## PRIVATE FUNCTIONS ##
-
-  defp day_input(day, trim \\ true) do
-    {:ok, input} = File.read("../inputs/#{day}")
-    if trim, do: String.trim(input), else: input
+  def day_nineteen do
+    input = day_input("19")
+    IO.puts("Day 19, part 1 answer: #{DayNineteen.part_one(input)}")
+    #    IO.puts("Day 19, part 2 answer: #{DayNineteen.part_two(input)}")
   end
 end
