@@ -1,25 +1,23 @@
-use std::fs;
-use std::io;
+use aoc2019::intcode;
 
-mod intcode;
+fn main() -> std::io::Result<()> {
+    let master_machine = intcode::Machine::new_from_file("../inputs/05")?;
 
-fn main() -> io::Result<()> {
-    let input = fs::read_to_string("../inputs/05")?;
-    let intcode: Vec<i32> = input
-        .trim()
-        .split(",")
-        .map(|str| str.parse().unwrap())
-        .collect();
+    let machine = &mut master_machine.clone();
+    machine.input.push(1);
+    machine.run();
 
-    let part1 = intcode::run(&mut intcode.to_vec(), &mut vec![1])
-        .output
-        .unwrap();
-    println!("part 1: {:?}", part1);
+    if let Some(output) = machine.output.pop() {
+        println!("part 1: {:?}", output);
+    }
 
-    let part2 = intcode::run(&mut intcode.to_vec(), &mut vec![5])
-        .output
-        .unwrap();
-    println!("part 2: {:?}", part2);
+    let machine = &mut master_machine.clone();
+    machine.input.push(5);
+    machine.run();
+
+    if let Some(output) = machine.output.pop() {
+        println!("part 2: {:?}", output);
+    }
 
     Ok(())
 }
