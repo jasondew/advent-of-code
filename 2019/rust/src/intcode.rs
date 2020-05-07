@@ -1,4 +1,4 @@
-pub type Word = i32;
+pub type Word = i64;
 pub type Tape = Vec<Word>;
 pub type Index = usize;
 
@@ -6,6 +6,7 @@ pub type Index = usize;
 pub struct Machine {
     pub tape: Tape,
     pub ip: Index,
+    pub bp: Word,
     pub state: State,
     pub input: Vec<Word>,
     pub output: Vec<Word>,
@@ -22,26 +23,90 @@ pub enum State {
 enum Param {
     Immediate(Word),
     Position(Index),
+    Relative(Word),
+}
+
+impl Param {
+    fn parse(machine: &Machine, modes: &str, index: Index) -> Self {
+        let value = machine.tape[machine.ip + index + 1];
+        let mode = modes.get((2 - index)..(3 - index));
+
+        match mode {
+            Some("0") => Param::Position(value as Index),
+            Some("1") => Param::Immediate(value),
+            Some("2") => Param::Relative(value),
+            _ => panic!("invalid param mode: {:?}", mode),
+        }
+    }
 }
 
 #[derive(Debug)]
 enum Operation {
-    Add(Param, Param, Index),
-    Mul(Param, Param, Index),
-    In(Index),
+    Add(Param, Param, Param),
+    Mul(Param, Param, Param),
+    In(Param),
     Out(Param),
     JumpIfTrue(Param, Param),
     JumpIfFalse(Param, Param),
-    LessThan(Param, Param, Index),
-    Equal(Param, Param, Index),
+    LessThan(Param, Param, Param),
+    Equal(Param, Param, Param),
+    IncrementBasePointer(Param),
     Done,
+}
+
+impl Operation {
+    fn parse(machine: &Machine) -> Operation {
+        let string = format!("{:05}", machine.tape[machine.ip]);
+        let (param_modes, opcode) = string.split_at(3);
+
+        match opcode {
+            "01" => Operation::Add(
+                Param::parse(machine, param_modes, 0),
+                Param::parse(machine, param_modes, 1),
+                Param::parse(machine, param_modes, 2),
+            ),
+            "02" => Operation::Mul(
+                Param::parse(machine, param_modes, 0),
+                Param::parse(machine, param_modes, 1),
+                Param::parse(machine, param_modes, 2),
+            ),
+            "03" => Operation::In(Param::parse(machine, param_modes, 0)),
+            "04" => Operation::Out(Param::parse(machine, param_modes, 0)),
+            "05" => Operation::JumpIfTrue(
+                Param::parse(machine, param_modes, 0),
+                Param::parse(machine, param_modes, 1),
+            ),
+            "06" => Operation::JumpIfFalse(
+                Param::parse(machine, param_modes, 0),
+                Param::parse(machine, param_modes, 1),
+            ),
+            "07" => Operation::LessThan(
+                Param::parse(machine, param_modes, 0),
+                Param::parse(machine, param_modes, 1),
+                Param::parse(machine, param_modes, 2),
+            ),
+            "08" => Operation::Equal(
+                Param::parse(machine, param_modes, 0),
+                Param::parse(machine, param_modes, 1),
+                Param::parse(machine, param_modes, 2),
+            ),
+            "09" => Operation::IncrementBasePointer(Param::parse(machine, param_modes, 0)),
+            "99" => Operation::Done,
+            _ => panic!("invalid opcode: {:?}", opcode),
+        }
+    }
 }
 
 impl Machine {
     pub fn new() -> Self {
+        Self::new_with_tape(&vec![])
+    }
+
+    pub fn new_with_tape(tape: &Tape) -> Self {
         Self {
-            tape: vec![],
+            tape: tape.clone(),
             ip: 0,
+            bp: 0,
             state: State::NotStarted,
             input: vec![],
             output: vec![],
@@ -56,31 +121,27 @@ impl Machine {
             .map(|str| str.parse().unwrap())
             .collect();
 
-        Ok(Self {
-            tape: tape,
-            ip: 0,
-            state: State::NotStarted,
-            input: vec![],
-            output: vec![],
-        })
+        Ok(Self::new_with_tape(&tape))
     }
 
     pub fn run(self: &mut Self) -> &mut Self {
         loop {
-            let operation = self.parse_operation();
-
-            match operation {
+            match Operation::parse(self) {
                 Operation::Add(a, b, to) => {
-                    self.tape[to] = self.value(a) + self.value(b);
+                    let a = self.param_value(a);
+                    let b = self.param_value(b);
+                    self.set_tape_value(to, a + b);
                     self.ip += 4
                 }
                 Operation::Mul(a, b, to) => {
-                    self.tape[to] = self.value(a) * self.value(b);
+                    let a = self.param_value(a);
+                    let b = self.param_value(b);
+                    self.set_tape_value(to, a * b);
                     self.ip += 4
                 }
                 Operation::In(to) => {
                     if let Some(value) = self.input.pop() {
-                        self.tape[to] = value;
+                        self.set_tape_value(to, value);
                         self.ip += 2
                     } else {
                         self.state = State::Waiting;
@@ -88,38 +149,43 @@ impl Machine {
                     }
                 }
                 Operation::Out(from) => {
-                    self.output.push(self.value(from));
+                    let from = self.param_value(from);
+                    self.output.push(from);
                     self.ip += 2
                 }
                 Operation::JumpIfTrue(predicate, jump_to) => {
-                    if self.value(predicate) != 0 {
-                        self.ip = self.value(jump_to) as Index
+                    if self.param_value(predicate) != 0 {
+                        self.ip = self.param_value(jump_to) as Index
                     } else {
                         self.ip += 3
                     }
                 }
                 Operation::JumpIfFalse(predicate, jump_to) => {
-                    if self.value(predicate) == 0 {
-                        self.ip = self.value(jump_to) as Index
+                    if self.param_value(predicate) == 0 {
+                        self.ip = self.param_value(jump_to) as Index
                     } else {
                         self.ip += 3
                     }
                 }
                 Operation::LessThan(a, b, output) => {
-                    if self.value(a) < self.value(b) {
-                        self.tape[output] = 1
+                    if self.param_value(a) < self.param_value(b) {
+                        self.set_tape_value(output, 1)
                     } else {
-                        self.tape[output] = 0
+                        self.set_tape_value(output, 0)
                     }
                     self.ip += 4
                 }
                 Operation::Equal(a, b, output) => {
-                    if self.value(a) == self.value(b) {
-                        self.tape[output] = 1
+                    if self.param_value(a) == self.param_value(b) {
+                        self.set_tape_value(output, 1)
                     } else {
-                        self.tape[output] = 0
+                        self.set_tape_value(output, 0)
                     }
                     self.ip += 4
+                }
+                Operation::IncrementBasePointer(x) => {
+                    self.bp += self.param_value(x);
+                    self.ip += 2
                 }
                 Operation::Done => {
                     self.state = State::Done;
@@ -129,70 +195,74 @@ impl Machine {
         }
     }
 
-    fn parse_operation(self: &Self) -> Operation {
-        let string = format!("{:05}", self.tape[self.ip])
-            .chars()
-            .rev()
-            .collect::<String>();
-        let (reversed_opcode, param_modes): (&str, &str) = string.split_at(2);
-        let opcode: u32 = reversed_opcode
-            .chars()
-            .rev()
-            .collect::<String>()
-            .parse()
-            .unwrap();
-
-        match opcode {
-            1 => Operation::Add(
-                self.parse_param(param_modes, 0),
-                self.parse_param(param_modes, 1),
-                self.tape[self.ip + 3] as Index,
-            ),
-            2 => Operation::Mul(
-                self.parse_param(param_modes, 0),
-                self.parse_param(param_modes, 1),
-                self.tape[self.ip + 3] as Index,
-            ),
-            3 => Operation::In(self.tape[self.ip + 1] as Index),
-            4 => Operation::Out(self.parse_param(param_modes, 0)),
-            5 => Operation::JumpIfTrue(
-                self.parse_param(param_modes, 0),
-                self.parse_param(param_modes, 1),
-            ),
-            6 => Operation::JumpIfFalse(
-                self.parse_param(param_modes, 0),
-                self.parse_param(param_modes, 1),
-            ),
-            7 => Operation::LessThan(
-                self.parse_param(param_modes, 0),
-                self.parse_param(param_modes, 1),
-                self.tape[self.ip + 3] as Index,
-            ),
-            8 => Operation::Equal(
-                self.parse_param(param_modes, 0),
-                self.parse_param(param_modes, 1),
-                self.tape[self.ip + 3] as Index,
-            ),
-            99 => Operation::Done,
-            _ => panic!("invalid opcode: {}", opcode),
-        }
-    }
-
-    fn parse_param(self: &Self, modes: &str, index: Index) -> Param {
-        let value = self.tape[self.ip + index + 1];
-        let mode = modes.chars().nth(index).unwrap();
-
-        match mode {
-            '0' => Param::Position(value as Index),
-            '1' => Param::Immediate(value),
-            _ => panic!("invalid param mode: {}", mode),
-        }
-    }
-
-    fn value(self: &Self, param: Param) -> Word {
+    fn param_value(self: &mut Self, param: Param) -> Word {
         match param {
             Param::Immediate(value) => value,
-            Param::Position(location) => self.tape[location],
+            Param::Position(location) => self.get_tape_value(location),
+            Param::Relative(offset) => self.get_tape_value((self.bp + offset) as Index),
         }
     }
+
+    fn get_tape_value(self: &mut Self, index: Index) -> Word {
+        if index < self.tape.len() {
+            self.tape[index]
+        } else {
+            0
+        }
+    }
+
+    fn set_tape_value(self: &mut Self, at: Param, value: Word) {
+        let index = match at {
+            Param::Immediate(_) => panic!("invalid parameter (Immediate) for In given"),
+            Param::Position(location) => location,
+            Param::Relative(offset) => (self.bp + offset) as Index,
+        };
+
+        if index >= self.tape.len() {
+            self.tape.resize(index + 1, 0)
+        }
+
+        self.tape[index] = value
+    }
+}
+
+#[allow(dead_code)]
+fn run(tape: Tape) -> Tape {
+    let machine = &mut Machine::new_with_tape(&tape);
+    machine.run();
+
+    return machine.output.clone();
+}
+
+#[test]
+fn hello_world() {
+    let tape = vec![
+        4, 3, 101, 72, 14, 3, 101, 1, 4, 4, 5, 3, 16, 99, 29, 7, 0, 3, -67, -12, 87, -8, 3, -6, -8,
+        -67, -23, -10,
+    ];
+    let hello_world = "Hello, world!\n"
+        .chars()
+        .map(|c| c as Word)
+        .collect::<Tape>();
+
+    assert_eq!(hello_world, run(tape))
+}
+
+#[test]
+fn supports_large_numbers() {
+    let tape = vec![1102, 34915192, 34915192, 7, 4, 7, 99, 0];
+
+    assert_eq!(vec![1_219_070_632_396_864], run(tape))
+}
+
+#[test]
+fn opcode_9() {
+    let tape = vec![
+        109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+    ];
+    let machine = &mut Machine::new_with_tape(&tape);
+
+    machine.run();
+
+    assert_eq!(tape, machine.output)
 }

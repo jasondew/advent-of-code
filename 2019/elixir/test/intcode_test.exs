@@ -8,12 +8,11 @@ defmodule IntcodeTest do
         ","
       )
 
-    assert %{memory: quine} = Intcode.run(quine, [])
+    assert %{outputs: quine} = Intcode.run(quine, [])
   end
 
   test "foo" do
-    assert %{outputs: [1_219_070_632_396_864]} =
-             run("1102,34915192,34915192,7,4,7,99,0")
+    assert %{outputs: [1_219_070_632_396_864]} = run("1102,34915192,34915192,7,4,7,99,0")
   end
 
   test "outputs large numbers" do
