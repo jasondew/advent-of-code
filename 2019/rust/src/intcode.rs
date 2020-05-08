@@ -27,14 +27,15 @@ enum Param {
 }
 
 impl Param {
-    fn parse(machine: &Machine, modes: &str, index: Index) -> Self {
+    fn parse(machine: &Machine, modes: Word, index: Index) -> Self {
         let value = machine.tape[machine.ip + index + 1];
-        let mode = modes.get((2 - index)..(3 - index));
+        let base: Word = 10;
+        let mode = modes % base.pow((index + 1) as u32) / base.pow(index as u32);
 
         match mode {
-            Some("0") => Param::Position(value as Index),
-            Some("1") => Param::Immediate(value),
-            Some("2") => Param::Relative(value),
+            0 => Param::Position(value as Index),
+            1 => Param::Immediate(value),
+            2 => Param::Relative(value),
             _ => panic!("invalid param mode: {:?}", mode),
         }
     }
@@ -56,42 +57,43 @@ enum Operation {
 
 impl Operation {
     fn parse(machine: &Machine) -> Operation {
-        let string = format!("{:05}", machine.tape[machine.ip]);
-        let (param_modes, opcode) = string.split_at(3);
+        let instruction = machine.tape[machine.ip];
+        let opcode = instruction % 100;
+        let modes = instruction / 100;
 
         match opcode {
-            "01" => Operation::Add(
-                Param::parse(machine, param_modes, 0),
-                Param::parse(machine, param_modes, 1),
-                Param::parse(machine, param_modes, 2),
+            1 => Operation::Add(
+                Param::parse(machine, modes, 0),
+                Param::parse(machine, modes, 1),
+                Param::parse(machine, modes, 2),
             ),
-            "02" => Operation::Mul(
-                Param::parse(machine, param_modes, 0),
-                Param::parse(machine, param_modes, 1),
-                Param::parse(machine, param_modes, 2),
+            2 => Operation::Mul(
+                Param::parse(machine, modes, 0),
+                Param::parse(machine, modes, 1),
+                Param::parse(machine, modes, 2),
             ),
-            "03" => Operation::In(Param::parse(machine, param_modes, 0)),
-            "04" => Operation::Out(Param::parse(machine, param_modes, 0)),
-            "05" => Operation::JumpIfTrue(
-                Param::parse(machine, param_modes, 0),
-                Param::parse(machine, param_modes, 1),
+            3 => Operation::In(Param::parse(machine, modes, 0)),
+            4 => Operation::Out(Param::parse(machine, modes, 0)),
+            5 => Operation::JumpIfTrue(
+                Param::parse(machine, modes, 0),
+                Param::parse(machine, modes, 1),
             ),
-            "06" => Operation::JumpIfFalse(
-                Param::parse(machine, param_modes, 0),
-                Param::parse(machine, param_modes, 1),
+            6 => Operation::JumpIfFalse(
+                Param::parse(machine, modes, 0),
+                Param::parse(machine, modes, 1),
             ),
-            "07" => Operation::LessThan(
-                Param::parse(machine, param_modes, 0),
-                Param::parse(machine, param_modes, 1),
-                Param::parse(machine, param_modes, 2),
+            7 => Operation::LessThan(
+                Param::parse(machine, modes, 0),
+                Param::parse(machine, modes, 1),
+                Param::parse(machine, modes, 2),
             ),
-            "08" => Operation::Equal(
-                Param::parse(machine, param_modes, 0),
-                Param::parse(machine, param_modes, 1),
-                Param::parse(machine, param_modes, 2),
+            8 => Operation::Equal(
+                Param::parse(machine, modes, 0),
+                Param::parse(machine, modes, 1),
+                Param::parse(machine, modes, 2),
             ),
-            "09" => Operation::IncrementBasePointer(Param::parse(machine, param_modes, 0)),
-            "99" => Operation::Done,
+            9 => Operation::IncrementBasePointer(Param::parse(machine, modes, 0)),
+            99 => Operation::Done,
             _ => panic!("invalid opcode: {:?}", opcode),
         }
     }
@@ -226,43 +228,48 @@ impl Machine {
     }
 }
 
-#[allow(dead_code)]
-fn run(tape: Tape) -> Tape {
-    let machine = &mut Machine::new_with_tape(&tape);
-    machine.run();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    return machine.output.clone();
-}
+    #[test]
+    fn hello_world() {
+        let tape = vec![
+            4, 3, 101, 72, 14, 3, 101, 1, 4, 4, 5, 3, 16, 99, 29, 7, 0, 3, -67, -12, 87, -8, 3, -6,
+            -8, -67, -23, -10,
+        ];
+        let hello_world = "Hello, world!\n"
+            .chars()
+            .map(|c| c as Word)
+            .collect::<Tape>();
 
-#[test]
-fn hello_world() {
-    let tape = vec![
-        4, 3, 101, 72, 14, 3, 101, 1, 4, 4, 5, 3, 16, 99, 29, 7, 0, 3, -67, -12, 87, -8, 3, -6, -8,
-        -67, -23, -10,
-    ];
-    let hello_world = "Hello, world!\n"
-        .chars()
-        .map(|c| c as Word)
-        .collect::<Tape>();
+        assert_eq!(hello_world, run(tape))
+    }
 
-    assert_eq!(hello_world, run(tape))
-}
+    #[test]
+    fn supports_large_numbers() {
+        let tape = vec![1102, 34915192, 34915192, 7, 4, 7, 99, 0];
 
-#[test]
-fn supports_large_numbers() {
-    let tape = vec![1102, 34915192, 34915192, 7, 4, 7, 99, 0];
+        assert_eq!(vec![1_219_070_632_396_864], run(tape))
+    }
 
-    assert_eq!(vec![1_219_070_632_396_864], run(tape))
-}
+    #[test]
+    fn quine() {
+        let tape = vec![
+            109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+        ];
+        let machine = &mut Machine::new_with_tape(&tape);
 
-#[test]
-fn opcode_9() {
-    let tape = vec![
-        109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
-    ];
-    let machine = &mut Machine::new_with_tape(&tape);
+        machine.run();
 
-    machine.run();
+        assert_eq!(tape, machine.output)
+    }
 
-    assert_eq!(tape, machine.output)
+    #[allow(dead_code)]
+    fn run(tape: Tape) -> Tape {
+        let machine = &mut Machine::new_with_tape(&tape);
+        machine.run();
+
+        return machine.output.clone();
+    }
 }

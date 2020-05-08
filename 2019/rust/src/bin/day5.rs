@@ -1,9 +1,7 @@
 use aoc2019::intcode;
 
 fn main() -> std::io::Result<()> {
-    let master_machine = intcode::Machine::new_from_file("../inputs/05")?;
-
-    let machine = &mut master_machine.clone();
+    let machine = &mut intcode::Machine::new_from_file("../inputs/05")?;
     machine.input.push(1);
     machine.run();
 
@@ -11,7 +9,7 @@ fn main() -> std::io::Result<()> {
         println!("part 1: {:?}", output);
     }
 
-    let machine = &mut master_machine.clone();
+    let machine = &mut intcode::Machine::new_from_file("../inputs/05")?;
     machine.input.push(5);
     machine.run();
 

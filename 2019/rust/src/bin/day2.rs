@@ -1,6 +1,6 @@
 use aoc2019::intcode;
 
-fn run(machine: &mut intcode::Machine, noun: intcode::Word, verb: intcode::Word) -> i32 {
+fn run(machine: &mut intcode::Machine, noun: intcode::Word, verb: intcode::Word) -> intcode::Word {
     machine.tape[1] = noun;
     machine.tape[2] = verb;
 
