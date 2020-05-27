@@ -197,7 +197,7 @@ impl Machine {
         }
     }
 
-    fn param_value(self: &mut Self, param: Param) -> Word {
+    fn param_value(self: &Self, param: Param) -> Word {
         match param {
             Param::Immediate(value) => value,
             Param::Position(location) => self.get_tape_value(location),
@@ -205,7 +205,7 @@ impl Machine {
         }
     }
 
-    fn get_tape_value(self: &mut Self, index: Index) -> Word {
+    fn get_tape_value(self: &Self, index: Index) -> Word {
         if index < self.tape.len() {
             self.tape[index]
         } else {
