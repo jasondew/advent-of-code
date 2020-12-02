@@ -15,6 +15,18 @@ defmodule AdventOfCode2020 do
 
     IO.puts("Part 1: #{DayTwo.part_one(input)}")
     IO.puts("Part 2: #{DayTwo.part_two(input)}")
+
+    Benchee.run(
+      %{
+        part_one: fn -> DayTwo.part_one(input) end,
+        part_two: fn -> DayTwo.part_two(input) end
+      },
+      formatters: [
+        {Benchee.Formatters.Console, comparison: false}
+      ]
+    )
+
+    :ok
   end
 
   ## PRIVATE FUNCTIONS
