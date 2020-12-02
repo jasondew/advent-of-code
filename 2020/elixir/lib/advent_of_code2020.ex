@@ -10,6 +10,13 @@ defmodule AdventOfCode2020 do
     IO.puts("Part 2: #{DayOne.part_two(input)}")
   end
 
+  def day_two() do
+    input = read_input("02")
+
+    IO.puts("Part 1: #{DayTwo.part_one(input)}")
+    IO.puts("Part 2: #{DayTwo.part_two(input)}")
+  end
+
   ## PRIVATE FUNCTIONS
 
   def read_input(day) do

@@ -2,4 +2,5 @@ defmodule AdventOfCode2020Test do
   use ExUnit.Case
 
   doctest DayOne
+  doctest DayTwo
 end
