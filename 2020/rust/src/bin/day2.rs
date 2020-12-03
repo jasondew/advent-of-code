@@ -1,15 +1,17 @@
+#![warn(clippy::pedantic)]
+
 use std::fs::File;
 use std::io::Read;
 use std::str::FromStr;
 
-fn part1(password_entries: &Vec<PasswordEntry>) -> usize {
+fn part1(password_entries: &[PasswordEntry]) -> usize {
     password_entries
         .iter()
         .filter(|password_entry| password_entry.is_valid())
         .count()
 }
 
-fn part2(password_entries: &Vec<PasswordEntry>) -> usize {
+fn part2(password_entries: &[PasswordEntry]) -> usize {
     password_entries
         .iter()
         .filter(|password_entry| password_entry.is_valid_part_two())
@@ -25,17 +27,17 @@ struct PasswordEntry {
 }
 
 impl PasswordEntry {
-    fn is_valid(self: &Self) -> bool {
+    fn is_valid(&self) -> bool {
         let count = self.password.chars().filter(|&c| c == self.letter).count();
         count >= self.left && count <= self.right
     }
 
-    fn is_valid_part_two(self: &Self) -> bool {
+    fn is_valid_part_two(&self) -> bool {
         let left: char = self.password.chars().nth(self.left - 1).unwrap();
         let right: char = self.password.chars().nth(self.right - 1).unwrap();
 
-        ((left == self.letter) && !(right == self.letter))
-            || ((right == self.letter) && !(left == self.letter))
+        ((left == self.letter) && (right != self.letter))
+            || ((right == self.letter) && (left != self.letter))
     }
 }
 
@@ -45,16 +47,16 @@ impl FromStr for PasswordEntry {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.splitn(2, ": ").collect();
         let password: &str = parts[1];
-        let parts: Vec<&str> = parts[0].splitn(2, " ").collect();
+        let parts: Vec<&str> = parts[0].splitn(2, ' ').collect();
         let letter: char = parts[1].chars().next().unwrap();
         let numbers: Vec<usize> = parts[0]
-            .splitn(2, "-")
+            .splitn(2, '-')
             .map(|str| str.parse().unwrap())
             .collect();
 
         Ok(PasswordEntry {
             password: password.into(),
-            letter: letter,
+            letter,
             left: numbers[0],
             right: numbers[1],
         })
