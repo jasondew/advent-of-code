@@ -1,7 +1,7 @@
 use aoc2020::day3::*;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-pub fn criterion_benchmark(c: &mut Criterion) {
+pub fn benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("Day 3");
     let map: Map = std::fs::read_to_string("../inputs/03")
         .unwrap()
@@ -15,5 +15,5 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, criterion_benchmark);
+criterion_group!(benches, benchmark);
 criterion_main!(benches);
