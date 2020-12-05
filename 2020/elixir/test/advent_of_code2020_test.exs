@@ -5,4 +5,5 @@ defmodule AdventOfCode2020Test do
   doctest DayTwo
   doctest DayThree
   doctest DayFour
+  doctest DayFive
 end

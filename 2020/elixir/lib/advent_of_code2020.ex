@@ -67,6 +67,25 @@ defmodule AdventOfCode2020 do
     :ok
   end
 
+  def day_five() do
+    input = read_input("05")
+
+    IO.puts("Part 1: #{DayFive.part_one(input)}")
+    IO.puts("Part 2: #{DayFive.part_two(input)}")
+
+    Benchee.run(
+      %{
+        part_one: fn -> DayFive.part_one(input) end,
+        part_two: fn -> DayFive.part_two(input) end
+      },
+      formatters: [
+        {Benchee.Formatters.Console, comparison: false}
+      ]
+    )
+
+    :ok
+  end
+
   ## PRIVATE FUNCTIONS
 
   def read_input(day) do
