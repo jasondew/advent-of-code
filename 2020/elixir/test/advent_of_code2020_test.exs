@@ -1,6 +1,7 @@
 defmodule AdventOfCode2020Test do
   use ExUnit.Case
 
+  doctest DayZero
   doctest DayOne
   doctest DayTwo
   doctest DayThree
@@ -8,4 +9,5 @@ defmodule AdventOfCode2020Test do
   doctest DayFive
   doctest DaySix
   doctest DaySeven
+  doctest DayEight
 end
