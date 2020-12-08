@@ -20,10 +20,20 @@ defmodule DayEight do
     end
   end
 
-  @doc """
-    iex> DayEight.part_one("nop +0\\nacc +1\\njmp +4\\nacc +3\\njmp -3\\nacc -99\\nacc +1\\njmp -4\\nacc +6")
+  @doc ~S[
+    iex> """
+    ...> nop +0
+    ...> acc +1
+    ...> jmp +4
+    ...> acc +3
+    ...> jmp -3
+    ...> acc -99
+    ...> acc +1
+    ...> jmp -4
+    ...> acc +6
+    ...> """ |> DayEight.part_one()
     5
-  """
+  ]
   def part_one(input) do
     input
     |> State.new()
@@ -31,10 +41,20 @@ defmodule DayEight do
     |> Map.get(:acc)
   end
 
-  @doc """
-    iex> DayEight.part_two("nop +0\\nacc +1\\njmp +4\\nacc +3\\njmp -3\\nacc -99\\nacc +1\\njmp -4\\nacc +6")
+  @doc ~S[
+    iex> """
+    ...> nop +0
+    ...> acc +1
+    ...> jmp +4
+    ...> acc +3
+    ...> jmp -3
+    ...> acc -99
+    ...> acc +1
+    ...> jmp -4
+    ...> acc +6
+    ...> """ |> DayEight.part_two()
     8
-  """
+  ]
   def part_two(input) do
     state = State.new(input)
 
