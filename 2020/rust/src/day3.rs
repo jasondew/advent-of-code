@@ -1,5 +1,3 @@
-#![warn(clippy::pedantic)]
-
 #[derive(Debug, PartialEq)]
 enum Cell {
     Open,
@@ -46,10 +44,12 @@ impl std::str::FromStr for Map {
     }
 }
 
+#[must_use]
 pub fn part1(map: &Map) -> i64 {
     collisions(map, (0, 0), (3, 1), 0)
 }
 
+#[must_use]
 pub fn part2(map: &Map) -> i64 {
     collisions(map, (0, 0), (1, 1), 0)
         * collisions(map, (0, 0), (3, 1), 0)
