@@ -12,17 +12,5 @@ edition = "2018"
 criterion = "0.3"
 
 [[bench]]
-name = "day3"
-harness = false
-
-[[bench]]
-name = "day4"
-harness = false
-
-[[bench]]
-name = "day5"
-harness = false
-
-[[bench]]
-name = "day6"
+name = "days"
 harness = false
