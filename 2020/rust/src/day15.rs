@@ -1,41 +1,41 @@
-use std::collections::HashMap;
-
 #[must_use]
-pub fn part1(input: &str) -> usize {
+pub fn part1(input: &str) -> u32 {
     number_at(input, 2020)
 }
 
 #[must_use]
-pub fn part2(input: &str) -> usize {
+pub fn part2(input: &str) -> u32 {
     number_at(input, 30000000)
 }
 
-fn number_at(input: &str, index: usize) -> usize {
-    let mut numbers: Vec<usize> = input
+#[allow(clippy::cast_possible_truncation)]
+fn number_at(input: &str, index: u32) -> u32 {
+    let numbers: Vec<u32> = input
         .trim()
         .split(',')
         .map(|c| c.parse().unwrap())
         .collect();
-    let mut cache: HashMap<usize, usize> = HashMap::new();
 
+    let mut cache: Vec<Option<u32>> = vec![None; index as usize];
     for (index, &number) in numbers.iter().enumerate() {
-        if index < numbers.len() - 1 {
-            cache.insert(number, index + 1);
-        }
+        cache[number as usize] = Some((index + 1) as u32)
     }
 
-    while numbers.len() < index {
-        let last: usize = *numbers.last().unwrap();
-        let next: usize = match cache.get(&last) {
-            Some(&number) => numbers.len() - number,
+    let mut count: u32 = numbers.len() as u32;
+    let mut current: u32 = *numbers.last().unwrap();
+
+    while count < index {
+        let next: u32 = match cache[current as usize] {
+            Some(number) => count - number,
             None => 0,
         };
 
-        cache.insert(last, numbers.len());
-        numbers.push(next);
+        cache[current as usize] = Some(count);
+        current = next;
+        count += 1;
     }
 
-    *numbers.last().unwrap()
+    current
 }
 
 #[cfg(test)]
