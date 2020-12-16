@@ -252,7 +252,7 @@ impl Grid {
                     }
                 )
             }
-            println!("")
+            println!()
         }
     }
 }

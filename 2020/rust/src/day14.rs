@@ -10,17 +10,16 @@ impl FromStr for Instruction {
     type Err = ();
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
-        use Instruction::*;
         let parts: Vec<&str> = string.splitn(2, " = ").collect();
 
         match parts.as_slice() {
-            ["mask", mask] => Ok(SetMask(mask.parse().unwrap())),
+            ["mask", mask] => Ok(Instruction::SetMask(mask.parse().unwrap())),
             [memory_location, value_string] => {
                 let parts: Vec<&str> = memory_location.split(|ch| ch == '[' || ch == ']').collect();
                 let value: usize = value_string.parse().unwrap();
                 let location: usize = parts[1].parse().unwrap();
 
-                Ok(SetMemory(location, value))
+                Ok(Instruction::SetMemory(location, value))
             }
             _ => Err(()),
         }
@@ -87,15 +86,13 @@ impl FromStr for Mask {
 
 #[must_use]
 pub fn part1(input: &str) -> usize {
-    use Instruction::*;
-
     let mut memory: HashMap<usize, usize> = HashMap::new();
     let mut mask: Mask = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".parse().unwrap();
 
     for line in input.lines() {
         match line.parse::<Instruction>().unwrap() {
-            SetMask(new_mask) => mask = new_mask,
-            SetMemory(location, value) => {
+            Instruction::SetMask(new_mask) => mask = new_mask,
+            Instruction::SetMemory(location, value) => {
                 memory.insert(location, mask.mask(value));
             }
         }
@@ -108,14 +105,13 @@ pub fn part1(input: &str) -> usize {
 // 18 * 2**4 + 16 * 2**5 + 13 * 2**6 + 19 * 2**7 + 15 * 2**8 + 16 * 2**9 = 16096
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    use Instruction::*;
     let mut memory: HashMap<usize, usize> = HashMap::new();
     let mut mask: Mask = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".parse().unwrap();
 
     for line in input.lines() {
         match line.parse::<Instruction>().unwrap() {
-            SetMask(new_mask) => mask = new_mask,
-            SetMemory(location, value) => {
+            Instruction::SetMask(new_mask) => mask = new_mask,
+            Instruction::SetMemory(location, value) => {
                 for address in mask.addresses(location) {
                     memory.insert(address, value);
                 }

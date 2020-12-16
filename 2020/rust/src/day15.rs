@@ -10,10 +10,10 @@ pub fn part2(input: &str) -> usize {
     number_at(input, 30000000)
 }
 
-pub fn number_at(input: &str, index: usize) -> usize {
+fn number_at(input: &str, index: usize) -> usize {
     let mut numbers: Vec<usize> = input
         .trim()
-        .split(",")
+        .split(',')
         .map(|c| c.parse().unwrap())
         .collect();
     let mut cache: HashMap<usize, usize> = HashMap::new();

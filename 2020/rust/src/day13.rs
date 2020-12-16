@@ -62,7 +62,7 @@ fn mod_pow(mut base: usize, mut exp: usize, modulus: usize) -> usize {
         if exp % 2 == 1 {
             result = result * base % modulus;
         }
-        exp = exp >> 1;
+        exp >>= 1;
         base = base * base % modulus
     }
 
