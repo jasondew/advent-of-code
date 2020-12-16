@@ -6,8 +6,13 @@ pub fn part1(input: &str) -> usize {
         .next()
         .unwrap()
         .split(',')
-        .filter(|&id| id != "x")
-        .map(|id| id.parse().unwrap())
+        .filter_map(|id| {
+            if id == "x" {
+                None
+            } else {
+                Some(id.parse().unwrap())
+            }
+        })
         .collect();
 
     let bus_ids_with_wait_time: Vec<(usize, usize)> = bus_ids
@@ -31,8 +36,13 @@ pub fn part2(input: &str) -> usize {
         .unwrap()
         .split(',')
         .enumerate()
-        .filter(|(_index, id)| id != &"x")
-        .map(|(index, id)| (index, id.parse().unwrap()))
+        .filter_map(|(index, id)| {
+            if id == "x" {
+                None
+            } else {
+                Some((index, id.parse().unwrap()))
+            }
+        })
         .collect();
 
     let (x, n) = solve_congruence(&bus_ids);
@@ -57,13 +67,13 @@ fn solve_congruence(equations: &[(usize, usize)]) -> (usize, usize) {
 fn mod_pow(mut base: usize, mut exp: usize, modulus: usize) -> usize {
     let mut result = 1;
 
-    base = base % modulus;
+    base %= modulus;
     while exp > 0 {
         if exp % 2 == 1 {
-            result = result * base % modulus;
+            result *= base % modulus;
         }
         exp >>= 1;
-        base = base * base % modulus
+        base *= base % modulus
     }
 
     result

@@ -5,9 +5,10 @@ pub fn part1(input: &str) -> u32 {
 
 #[must_use]
 pub fn part2(input: &str) -> u32 {
-    number_at(input, 30000000)
+    number_at(input, 30_000_000)
 }
 
+#[allow(clippy::match_on_vec_items)]
 #[allow(clippy::cast_possible_truncation)]
 fn number_at(input: &str, index: u32) -> u32 {
     let numbers: Vec<u32> = input

@@ -38,10 +38,11 @@ impl Mask {
         (value & self.and_mask) | self.or_mask
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     fn addresses(&self, base: usize) -> Vec<usize> {
         let x_count: usize = self.pattern.chars().filter(|&ch| ch == 'X').count();
 
-        (0..2usize.pow(x_count as u32))
+        (0..2_usize.pow(x_count as u32))
             .map(|i| {
                 let base_string = Self::padded_binary_string(base, 36);
                 let values = Self::padded_binary_string(i, x_count);

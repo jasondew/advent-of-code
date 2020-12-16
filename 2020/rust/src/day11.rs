@@ -33,8 +33,7 @@ impl Grid {
     }
 
     fn next_cell(&self, cell: &Cell, row: usize, col: usize) -> Cell {
-        use Cell::*;
-
+        use Cell::{EmptySeat, Floor, OccupiedSeat};
         match cell {
             Floor => Floor,
             EmptySeat => {
@@ -101,8 +100,7 @@ impl Grid {
     }
 
     fn next_cell_all_directions(&self, cell: &Cell, row: usize, col: usize) -> Cell {
-        use Cell::*;
-
+        use Cell::{EmptySeat, Floor, OccupiedSeat};
         match cell {
             Floor => Floor,
             EmptySeat => {
@@ -240,7 +238,7 @@ impl Grid {
 
     #[allow(dead_code)]
     fn print(&self) {
-        use Cell::*;
+        use Cell::{EmptySeat, Floor, OccupiedSeat};
         for row in &self.data {
             for cell in row {
                 print!(
@@ -261,7 +259,7 @@ impl std::str::FromStr for Grid {
     type Err = ();
 
     fn from_str(string: &str) -> Result<Self, ()> {
-        use Cell::*;
+        use Cell::{EmptySeat, Floor, OccupiedSeat};
         let data: Vec<Vec<Cell>> = string
             .lines()
             .map(|line| {

@@ -37,7 +37,7 @@ fn chain_count(voltages: &[usize], index: usize, cache: &mut HashMap<usize, usiz
         let options: Vec<usize> = voltages[(index + 1)..to_index]
             .iter()
             .filter(|&v| v <= &(current + 3))
-            .map(|&v| v)
+            .copied()
             .collect();
         let count = match options.as_slice() {
             [] => 1,
