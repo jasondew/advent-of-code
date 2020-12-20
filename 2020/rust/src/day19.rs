@@ -20,7 +20,6 @@ type RuleMap = HashMap<u8, Vec<Vec<RuleItem>>>;
 
 #[derive(Debug)]
 struct Input {
-    rule: Rule,
     rule_map: RuleMap,
     strings: Vec<String>,
 }
@@ -60,51 +59,62 @@ impl FromStr for Input {
             }
         }
 
-        fn map_sequence(rule: &Vec<RuleItem>, rule_map: &RuleMap) -> Vec<Rule> {
-            rule.iter()
-                .map(|item| match item {
-                    RuleItem::A => Rule::A,
-                    RuleItem::B => Rule::B,
-                    RuleItem::ID(id) => match &rule_map.get(id).unwrap()[..] {
-                        [sequence] => Rule::Sequence(map_sequence(sequence, rule_map)),
-                        [sequence_one, sequence_two] => Rule::Either(
-                            map_sequence(sequence_one, rule_map),
-                            map_sequence(sequence_two, rule_map),
-                        ),
-                        _ => panic!("unexpected structure"),
-                    },
-                })
-                .collect()
-        }
-
-        let rule_zero: &Vec<RuleItem> = &rule_map.get(&0).unwrap()[0];
-        let rule: Rule = Rule::Sequence(map_sequence(rule_zero, &rule_map));
-
         let strings: Vec<String> = string_lines
             .lines()
             .map(|string| string.to_owned())
             .collect();
 
-        Ok(Input {
-            rule,
-            rule_map,
-            strings,
-        })
+        Ok(Input { rule_map, strings })
     }
 }
 
 #[must_use]
 pub fn part1(input_string: &str) -> usize {
     let input: Input = input_string.parse().unwrap();
+    let rule: &Rule = &get_sequence_rule(&input.rule_map, 0);
 
     input
         .strings
         .iter()
         .filter(|string| {
-            let (matching, consumed) = matches_rule(string.as_str(), &input.rule);
+            let (matching, consumed) = matches_rule(string.as_str(), rule);
             matching && consumed == string.len()
         })
         .count()
+}
+
+fn get_sequence_rule(rule_map: &RuleMap, id: u8) -> Rule {
+    let rule_item: &Vec<RuleItem> = &rule_map.get(&id).unwrap()[0];
+
+    Rule::Sequence(map_sequence(rule_item, rule_map))
+}
+
+fn get_either_rule(rule_map: &RuleMap, id: u8) -> Rule {
+    let rule_item: &Vec<Vec<RuleItem>> = &rule_map.get(&id).unwrap();
+    let option_one: &Vec<RuleItem> = &rule_item[0];
+    let option_two: &Vec<RuleItem> = &rule_item[1];
+
+    Rule::Either(
+        map_sequence(option_one, rule_map),
+        map_sequence(option_two, rule_map),
+    )
+}
+
+fn map_sequence(rule: &Vec<RuleItem>, rule_map: &RuleMap) -> Vec<Rule> {
+    rule.iter()
+        .map(|item| match item {
+            RuleItem::A => Rule::A,
+            RuleItem::B => Rule::B,
+            RuleItem::ID(id) => match &rule_map.get(id).unwrap()[..] {
+                [sequence] => Rule::Sequence(map_sequence(sequence, rule_map)),
+                [sequence_one, sequence_two] => Rule::Either(
+                    map_sequence(sequence_one, rule_map),
+                    map_sequence(sequence_two, rule_map),
+                ),
+                _ => panic!("unexpected structure"),
+            },
+        })
+        .collect()
 }
 
 fn matches_rule(string: &str, rule: &Rule) -> (bool, usize) {
@@ -156,8 +166,53 @@ fn matches_rules(string: &str, rules: &[Rule]) -> (bool, usize) {
 #[must_use]
 pub fn part2(input_string: &str) -> usize {
     let input: Input = input_string.parse().unwrap();
-    //    dbg!(&input.rule_map);
-    input.rule_map.len()
+    let rule_forty_two: &Rule = &get_either_rule(&input.rule_map, 42);
+    let rule_thirty_one: &Rule = &get_either_rule(&input.rule_map, 31);
+    let mut matching_count: usize = 0;
+
+    for initial_string in input.strings {
+        let mut string: &str = initial_string.as_str();
+        let mut rule_forty_two_count: usize = 0;
+        let mut rule_thirty_one_count: usize = 0;
+
+        loop {
+            if string == "" {
+                break;
+            }
+            let (matching, consumed): (bool, usize) = matches_rule(string, rule_forty_two);
+
+            if matching {
+                rule_forty_two_count += 1;
+                string = &string[consumed..];
+            } else {
+                break;
+            }
+        }
+
+        loop {
+            if string == "" {
+                break;
+            }
+            let (matching, consumed): (bool, usize) = matches_rule(string, rule_thirty_one);
+
+            if matching {
+                rule_thirty_one_count += 1;
+                string = &string[consumed..];
+            } else {
+                break;
+            }
+        }
+
+        let matching: bool = string == ""
+            && rule_forty_two_count > rule_thirty_one_count
+            && rule_thirty_one_count > 0;
+
+        if matching {
+            matching_count += 1;
+        }
+    }
+
+    matching_count
 }
 
 #[cfg(test)]
