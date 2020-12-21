@@ -196,7 +196,12 @@ pub fn part2(input: &str) -> usize {
     let tiles: Vec<Tile> = Tile::parse(input);
     let connections: Connections = Connections::new(&tiles);
     let length: usize = (tiles.len() as f32).sqrt() as usize;
+    let mut tile_ids_used: Vec<TileID> = Vec::new();
     let corner_tile: &Tile = find_corner_tiles(&tiles, &connections)[0];
+
+    tile_ids_used.push(corner_tile.id);
+
+    dbg!(&connections.map[&corner_tile.id]);
 
     length
 }
