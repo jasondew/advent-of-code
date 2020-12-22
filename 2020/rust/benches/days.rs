@@ -146,8 +146,17 @@ pub fn day21(c: &mut Criterion) {
     group.finish();
 }
 
+pub fn day22(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Day 22");
+    let input = std::fs::read_to_string("../inputs/22").unwrap();
+
+    group.bench_function("part 1", |b| b.iter(|| day22::part1(black_box(&input))));
+    group.bench_function("part 2", |b| b.iter(|| day22::part2(black_box(&input))));
+    group.finish();
+}
+
 criterion_group!(
     benches, day3, day4, day5, day6, day10, day11, day12, day13, day14, day15, day16, day17, day18,
-    day19, day20, day21
+    day19, day20, day21, day22
 );
 criterion_main!(benches);
