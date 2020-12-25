@@ -164,6 +164,14 @@ pub fn day23(c: &mut Criterion) {
     group.finish();
 }
 
+pub fn day24(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Day 24");
+    let input = std::fs::read_to_string("../inputs/24").unwrap();
+
+    group.bench_function("part 1", |b| b.iter(|| day24::part1(black_box(&input))));
+    group.finish();
+}
+
 pub fn day25(c: &mut Criterion) {
     let mut group = c.benchmark_group("Day 25");
     let input = std::fs::read_to_string("../inputs/25").unwrap();
