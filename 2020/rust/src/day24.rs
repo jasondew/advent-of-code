@@ -279,12 +279,12 @@ pub fn part2(input: &str) -> usize {
         input.lines().map(|line| line.parse().unwrap()).collect();
     let mut map: Map = Map::from_directions(&tile_directions);
 
-    for iteration in 1..101 {
+    for _iteration in 1..101 {
         map.step();
-        println!("Day {}: {}", iteration, map.black_count());
+        //        println!("Day {}: {}", iteration, map.black_count());
     }
 
-    map.print();
+    //    map.print();
     map.black_count()
 }
 

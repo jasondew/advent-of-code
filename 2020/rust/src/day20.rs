@@ -201,7 +201,7 @@ pub fn part2(input: &str) -> usize {
 
     tile_ids_used.push(corner_tile.id);
 
-    dbg!(&connections.map[&corner_tile.id]);
+    //    dbg!(&connections.map[&corner_tile.id]);
 
     length
 }
