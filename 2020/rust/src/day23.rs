@@ -1,38 +1,42 @@
-use std::collections::HashMap;
-use std::str::FromStr;
-
-type Cup = u32;
+type Cup = usize;
 
 #[derive(Debug)]
 struct Cups {
     data: Vec<Cup>,
-    map: HashMap<Cup, usize>,
-    current_index: usize,
+    next: Vec<Cup>,
+    current_cup: usize,
     current_move: usize,
 }
 
-impl FromStr for Cups {
-    type Err = ();
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        let mut data: Vec<Cup> = Vec::with_capacity(1_000_000);
-        let mut map: HashMap<Cup, usize> = HashMap::with_capacity(1_000_000);
+impl Cups {
+    fn new(input: &str, size: usize) -> Self {
+        let mut data: Vec<Cup> = Vec::with_capacity(size);
 
-        for (index, ch) in input.trim().chars().enumerate() {
+        for ch in input.trim().chars() {
             let cup = ch.to_digit(10).unwrap() as Cup;
             data.push(cup);
-            map.insert(cup, index);
         }
 
-        Ok(Cups {
-            data,
-            map,
-            current_index: 0,
-            current_move: 0,
-        })
-    }
-}
+        for cup in (*data.iter().max().unwrap() + 1)..(size + 1) {
+            data.push(cup);
+        }
 
-impl Cups {
+        let mut next: Vec<Cup> = vec![0; data.len() + 1];
+        for index in 0..(data.len() - 1) {
+            next[data[index]] = data[index + 1];
+        }
+        next[data[data.len() - 1]] = data[0];
+
+        let current_cup = data[0];
+
+        Cups {
+            data,
+            next,
+            current_cup,
+            current_move: 0,
+        }
+    }
+
     fn stepn(&mut self, count: usize) {
         for _index in 0..count {
             self.step();
@@ -42,18 +46,23 @@ impl Cups {
     fn step(&mut self) {
         self.current_move += 1;
 
-        let moving_cups: Vec<Cup> = self.cup_range(self.current_index + 1, 3);
-        let destination_cup: Cup = self.final_destination(&moving_cups);
-        let next_cup: Cup = self.cup_at(self.current_index + 4);
+        let mut moving_cups: Vec<Cup> = Vec::with_capacity(3);
+        let mut cup: Cup = self.current_cup;
+        for _ in 0..3 {
+            cup = self.next[cup];
+            moving_cups.push(cup);
+        }
+
+        let destination_cup: Cup = self.destination(&moving_cups);
 
         //        self.print_step(&moving_cups, destination_cup);
         self.move_cups(&moving_cups, destination_cup);
 
-        self.current_index = self.cup_index(next_cup);
+        self.current_cup = self.next[self.current_cup];
     }
 
-    fn final_destination(&self, moving_cups: &[Cup]) -> Cup {
-        let mut destination_cup: Cup = self.previous_cup(self.cup_at(self.current_index));
+    fn destination(&self, moving_cups: &[Cup]) -> Cup {
+        let mut destination_cup: Cup = self.previous_cup(self.current_cup);
 
         loop {
             if moving_cups.contains(&destination_cup) {
@@ -76,139 +85,37 @@ impl Cups {
         previous_cup
     }
 
-    fn cup_index(&self, target_cup: Cup) -> usize {
-        self.map[&target_cup]
-    }
-
-    fn cup_at(&self, index: usize) -> Cup {
-        let mut wrapped_index = index;
-
-        if wrapped_index >= self.data.len() {
-            wrapped_index -= self.data.len();
-        }
-
-        self.data[wrapped_index]
-    }
-
-    fn cup_range(&self, from: usize, length: usize) -> Vec<Cup> {
-        (0..length)
-            .map(|offset| self.cup_at(from + offset))
-            .collect()
-    }
-
-    //          Case 1          or          Case 2
-    //    1 2 (3) 4 5 6 7 8 9         1 2 (3) 4 5 6 7 8 9
-    //      ^ <-- ^ ^ ^                       ^ ^ ^ --> ^
-    //      |=========|                       |=========|
-    // from 1  2  3 4 5                       3 4 5 6 7 8
-    //  to  4  5  1 2 3                       6 7 8 3 4 5
     fn move_cups(&mut self, cups: &[Cup], destination_cup: Cup) {
-        if self.cup_index(cups[0]) + 2 >= self.data.len() {
-            self.shift(self.cup_index(cups[0]));
-            //            dbg!(&self.data);
-            //            dbg!(&self.map);
-        }
-
-        let group_start_index = self.cup_index(cups[0]);
-        let group_end_index = group_start_index + 2;
-        let destination_index = self.cup_index(destination_cup) + 1;
-
-        let affected_cups: Vec<(Cup, usize)> = if destination_index < group_end_index {
-            //            println!(
-            //                "CASE 1: indexes {}..{} to index {}",
-            //                group_start_index, group_end_index, destination_index
-            //            );
-            // case 1
-
-            let x = (group_start_index..(group_end_index + 1))
-                .chain(destination_index..group_start_index)
-                .enumerate()
-                .map(|(offset, index)| (self.cup_at(index), destination_index + offset))
-                .collect();
-            //            dbg!(&x);
-            x
-        } else {
-            //            println!(
-            //                "CASE 2: indexes {}..{} to index {}",
-            //                group_start_index, group_end_index, destination_index
-            //            );
-            // case 2
-            (group_start_index..destination_index)
-                .enumerate()
-                .map(|(offset, index)| {
-                    let new_index = if index <= group_end_index {
-                        let x = destination_index + offset - 3;
-                        //                        println!(
-                        //                            "[{}] (index <= group_end_index) index {} => {}",
-                        //                            offset, index, x
-                        //                        );
-                        x
-                    } else {
-                        let x = group_start_index + (index - group_end_index - 1);
-                        //                        println!(
-                        //                            "[{}] (index > group_end_index) index {} => {}",
-                        //                            offset, index, x
-                        //                        );
-                        x
-                    };
-                    (self.cup_at(index), new_index)
-                })
-                .collect()
-        };
-
-        //        println!("data={:?}", &self.data);
-        //        println!("> move {:?} to after {:?}", &cups, destination_cup);
-        for (cup, new_index) in affected_cups {
-            let wrapped_index = new_index % self.data.len();
-            self.data[wrapped_index] = cup;
-            self.map.insert(cup, wrapped_index);
-        }
-        //        println!("data={:?}\n", &self.data);
-    }
-
-    fn shift(&mut self, offset: usize) {
-        //        println!("SHIFTING!");
-        let mut new_data: Vec<Cup> = Vec::with_capacity(self.data.len());
-        let mut new_map: HashMap<Cup, usize> = HashMap::with_capacity(self.map.len());
-
-        for &cup in self.data.iter().skip(offset) {
-            new_data.push(cup);
-        }
-
-        for &cup in self.data.iter().take(offset) {
-            new_data.push(cup);
-        }
-
-        for (index, &cup) in new_data.iter().enumerate() {
-            new_map.insert(cup, index);
-        }
-
-        self.data = new_data;
-        self.map = new_map;
-    }
-
-    fn add_cups_up_to(&mut self, n: Cup) {
-        for cup in (*self.data.iter().max().unwrap() + 1)..n {
-            self.data.push(cup);
-            self.map.insert(cup, cup as usize);
-        }
+        self.next.swap(destination_cup, self.current_cup);
+        self.next.swap(self.current_cup, cups[2]);
     }
 
     fn output(&mut self) -> String {
-        let one_index: usize = self.cup_index(1);
+        let mut cup: Cup = self.next[1];
+        let mut cups: Vec<Cup> = vec![cup];
 
-        (1..9)
-            .map(|index| self.data[(one_index + index) % self.data.len()] as u8)
-            .map(|cup| (48 + cup) as char)
-            .collect()
+        for _ in 0..7 {
+            cup = self.next[cup];
+            cups.push(cup);
+        }
+
+        cups.iter().map(|&cup| (48 + (cup as u8)) as char).collect()
     }
 
     #[allow(dead_code)]
     fn print_step(&self, moving_cups: &[Cup], destination_cup: Cup) {
         println!("-- move {} --", self.current_move);
         print!("cups: ");
-        for (index, cup) in self.data.iter().enumerate() {
-            if index == self.current_index {
+        let mut cups = vec![0; 9];
+        let mut cup = 7;
+
+        for index in 0..9 {
+            cup = self.next[cup];
+            cups[index] = cup;
+        }
+
+        for cup in cups {
+            if cup == self.current_cup {
                 print!("({}) ", cup);
             } else {
                 print!("{} ", cup);
@@ -222,7 +129,7 @@ impl Cups {
 
 #[must_use]
 pub fn part1(input: &str) -> String {
-    let mut cups: Cups = input.parse().unwrap();
+    let mut cups: Cups = Cups::new(input, 9);
 
     cups.stepn(100);
 
@@ -231,16 +138,14 @@ pub fn part1(input: &str) -> String {
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    let mut cups: Cups = input.parse().unwrap();
-
-    cups.add_cups_up_to(1_000_000);
+    let mut cups: Cups = Cups::new(input, 1_000_000);
 
     cups.stepn(10_000_000);
 
-    cups.cup_range(cups.cup_index(1), 2)
-        .iter()
-        .map(|cup| *cup as usize)
-        .product()
+    let one = cups.next[1];
+    let two = cups.next[one];
+
+    one * two
 }
 
 #[cfg(test)]
@@ -249,7 +154,7 @@ mod tests {
 
     #[test]
     fn part1_short_example() {
-        let mut cups: Cups = "389125467\n".parse().unwrap();
+        let mut cups: Cups = Cups::new("389125467\n", 9);
 
         cups.stepn(10);
 
