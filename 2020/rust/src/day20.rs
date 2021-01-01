@@ -28,11 +28,27 @@ struct Tile {
     side_discriminants: HashMap<Discriminant, (Side, Orientation)>,
 }
 
-#[derive(Debug)]
 struct LockedTile {
     id: TileID,
     cells: Vec<Vec<Cell>>,
+    cells_with_borders: Vec<Vec<Cell>>,
+    transform: Transform,
     side_discriminants: HashMap<Side, Discriminant>,
+}
+
+impl std::fmt::Debug for LockedTile {
+    fn fmt(
+        &self,
+        formatter: &mut std::fmt::Formatter<'_>,
+    ) -> std::result::Result<(), std::fmt::Error> {
+        formatter.write_str(
+            format!(
+                "LockedTile: ID={} Transform={:?} SideDiscriminants={:?}",
+                self.id, self.transform, self.side_discriminants
+            )
+            .as_str(),
+        )
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
@@ -68,8 +84,8 @@ struct Connections {
 }
 
 #[derive(Debug)]
-struct Grid {
-    tiles: Vec<Vec<LockedTile>>,
+struct Grid<'a> {
+    tiles: Vec<Vec<&'a LockedTile>>,
 }
 
 #[derive(Debug)]
@@ -95,41 +111,30 @@ impl std::str::FromStr for Tile {
             })
             .collect();
 
-        fn side_discriminant(cells: &Vec<Cell>) -> Discriminant {
-            cells
-                .iter()
-                .map(|cell| match cell {
-                    Cell::On => "#",
-                    Cell::Off => ".",
-                })
-                .collect::<Vec<&str>>()
-                .join("")
-        }
-
         use Orientation::{Normal, Reversed};
         use Side::{Bottom, Left, Right, Top};
 
         let mut side_discriminants: HashMap<Discriminant, (Side, Orientation)> = HashMap::new();
 
         let mut top_row: Vec<Cell> = cells[0].clone();
-        side_discriminants.insert(side_discriminant(&top_row), (Top, Normal));
+        side_discriminants.insert(Tile::side_discriminant(&top_row), (Top, Normal));
         top_row.reverse();
-        side_discriminants.insert(side_discriminant(&top_row), (Top, Reversed));
+        side_discriminants.insert(Tile::side_discriminant(&top_row), (Top, Reversed));
 
         let mut bottom_row: Vec<Cell> = cells[9].clone();
-        side_discriminants.insert(side_discriminant(&bottom_row), (Bottom, Normal));
+        side_discriminants.insert(Tile::side_discriminant(&bottom_row), (Bottom, Normal));
         bottom_row.reverse();
-        side_discriminants.insert(side_discriminant(&bottom_row), (Bottom, Reversed));
+        side_discriminants.insert(Tile::side_discriminant(&bottom_row), (Bottom, Reversed));
 
         let mut left_row: Vec<Cell> = cells.iter().map(|row| row[0]).collect();
-        side_discriminants.insert(side_discriminant(&left_row), (Left, Normal));
+        side_discriminants.insert(Tile::side_discriminant(&left_row), (Left, Normal));
         left_row.reverse();
-        side_discriminants.insert(side_discriminant(&left_row), (Left, Reversed));
+        side_discriminants.insert(Tile::side_discriminant(&left_row), (Left, Reversed));
 
         let mut right_row: Vec<Cell> = cells.iter().map(|row| row[9]).collect();
-        side_discriminants.insert(side_discriminant(&right_row), (Right, Normal));
+        side_discriminants.insert(Tile::side_discriminant(&right_row), (Right, Normal));
         right_row.reverse();
-        side_discriminants.insert(side_discriminant(&right_row), (Right, Reversed));
+        side_discriminants.insert(Tile::side_discriminant(&right_row), (Right, Reversed));
 
         Ok(Tile {
             id,
@@ -148,30 +153,58 @@ impl Tile {
             .collect()
     }
 
+    fn side_discriminant(cells: &Vec<Cell>) -> Discriminant {
+        cells
+            .iter()
+            .map(|cell| match cell {
+                Cell::On => "#",
+                Cell::Off => ".",
+            })
+            .collect::<Vec<&str>>()
+            .join("")
+    }
+
+    fn print_cells(cells: &Vec<Vec<Cell>>) {
+        for row in cells {
+            for cell in row {
+                print!("{:?} ", cell);
+            }
+            println!();
+        }
+    }
+
     #[allow(dead_code)]
     fn print(&self) {
         println!(
             "ID: {} side discriminants: {:?}",
             self.id, self.side_discriminants
         );
-        for row in &self.cells {
-            for cell in row {
-                match cell {
-                    Cell::On => print!("#"),
-                    Cell::Off => print!("."),
-                }
-            }
-            println!();
-        }
+        Self::print_cells(&self.cells);
     }
 }
 
 impl LockedTile {
     fn from_tile(tile: &Tile, transform: Transform) -> Self {
+        let cells: Vec<Vec<Cell>> = transform.apply(tile.cells.clone());
+        let mut side_discriminants: HashMap<Side, Discriminant> = HashMap::new();
+
+        side_discriminants.insert(Side::Top, Tile::side_discriminant(&cells[0]));
+        side_discriminants.insert(Side::Bottom, Tile::side_discriminant(&cells[9]));
+        side_discriminants.insert(
+            Side::Left,
+            Tile::side_discriminant(&cells.iter().map(|row| row[0]).collect()),
+        );
+        side_discriminants.insert(
+            Side::Right,
+            Tile::side_discriminant(&cells.iter().map(|row| row[9]).collect()),
+        );
+
         Self {
             id: tile.id,
-            cells: transform.apply(Self::remove_borders(&tile.cells)),
-            side_discriminants: transform.pick(&tile.side_discriminants),
+            cells: Self::remove_borders(&cells),
+            cells_with_borders: cells,
+            transform,
+            side_discriminants,
         }
     }
 
@@ -184,22 +217,12 @@ impl LockedTile {
             .collect()
     }
 
-    // TODO: figure out how to share this with `Tile`
     #[allow(dead_code)]
     fn print(&self) {
-        println!(
-            "ID: {} side discriminants: {:?}",
-            self.id, self.side_discriminants
-        );
-        for row in &self.cells {
-            for cell in row {
-                match cell {
-                    Cell::On => print!("#"),
-                    Cell::Off => print!("."),
-                }
-            }
-            println!();
-        }
+        println!("\n# Locked Tile ID {} ({:?})", self.id, self.transform);
+        println!();
+        Tile::print_cells(&self.cells_with_borders);
+        println!();
     }
 }
 
@@ -211,11 +234,13 @@ impl Transform {
             .iter()
             .map(|(_tile_id, (sides, _orientations))| match sides {
                 (Side::Top, Side::Bottom) => Transform::FlipVertically,
+                (Side::Top, Side::Left) => Transform::RotateRight,
                 (Side::Bottom, Side::Top) => Transform::Nothing,
                 (Side::Bottom, Side::Left) => Transform::Nothing,
                 (Side::Bottom, Side::Right) => Transform::Nothing,
                 (Side::Right, Side::Left) => Transform::Nothing,
-                (Side::Right, Side::Bottom) => Transform::Nothing,
+                (Side::Right, Side::Right) => Transform::FlipHorizontally,
+                (Side::Right, Side::Bottom) => Transform::RotateRight,
                 (Side::Left, Side::Right) => Transform::FlipHorizontally,
                 _ => panic!(format!("invalid side combination: {:?}", sides)),
             })
@@ -226,6 +251,10 @@ impl Transform {
                     (transform, other_transform) if transform == other_transform => transform,
                     (Transform::FlipVertically, Transform::FlipHorizontally) => Transform::FlipBoth,
                     (Transform::FlipHorizontally, Transform::FlipVertically) => Transform::FlipBoth,
+                    (Transform::RotateRight, Transform::FlipHorizontally)
+                    | (Transform::FlipHorizontally, Transform::RotateRight) => {
+                        Transform::RotateRightAndFlipHorizontally
+                    }
                     pair => panic!(format!("{:?} shouldn't happen", pair)),
                 }
             })
@@ -284,129 +313,6 @@ impl Transform {
             Transform::RotateRightAndFlipHorizontally => flip_horizontally(rotate_right(cells)),
         }
     }
-
-    fn pick(
-        &self,
-        side_discriminants: &HashMap<Discriminant, (Side, Orientation)>,
-    ) -> HashMap<Side, Discriminant> {
-        let mut map: HashMap<Side, Discriminant> = HashMap::new();
-
-        side_discriminants
-            .iter()
-            .for_each(|(discriminant, &(side, orientation))| match self {
-                Transform::Nothing => {
-                    if orientation == Orientation::Normal {
-                        map.insert(side, discriminant.clone());
-                    }
-                }
-                Transform::FlipHorizontally => match (side, orientation) {
-                    (Side::Top, Orientation::Reversed) => {
-                        map.insert(Side::Top, discriminant.clone());
-                    }
-                    (Side::Bottom, Orientation::Reversed) => {
-                        map.insert(Side::Bottom, discriminant.clone());
-                    }
-                    (Side::Left, Orientation::Normal) => {
-                        map.insert(Side::Right, discriminant.clone());
-                    }
-                    (Side::Right, Orientation::Normal) => {
-                        map.insert(Side::Left, discriminant.clone());
-                    }
-                    _ => {}
-                },
-                Transform::FlipVertically => match (side, orientation) {
-                    (Side::Top, Orientation::Normal) => {
-                        map.insert(Side::Bottom, discriminant.clone());
-                    }
-                    (Side::Bottom, Orientation::Normal) => {
-                        map.insert(Side::Top, discriminant.clone());
-                    }
-                    (Side::Left, Orientation::Reversed) => {
-                        map.insert(Side::Left, discriminant.clone());
-                    }
-                    (Side::Right, Orientation::Reversed) => {
-                        map.insert(Side::Right, discriminant.clone());
-                    }
-                    _ => {}
-                },
-                Transform::FlipBoth => match (side, orientation) {
-                    (Side::Top, Orientation::Reversed) => {
-                        map.insert(Side::Bottom, discriminant.clone());
-                    }
-                    (Side::Bottom, Orientation::Reversed) => {
-                        map.insert(Side::Top, discriminant.clone());
-                    }
-                    (Side::Left, Orientation::Reversed) => {
-                        map.insert(Side::Right, discriminant.clone());
-                    }
-                    (Side::Right, Orientation::Reversed) => {
-                        map.insert(Side::Left, discriminant.clone());
-                    }
-                    _ => {}
-                },
-                Transform::RotateLeft => match (side, orientation) {
-                    (Side::Right, Orientation::Normal) => {
-                        map.insert(Side::Top, discriminant.clone());
-                    }
-                    (Side::Bottom, Orientation::Normal) => {
-                        map.insert(Side::Right, discriminant.clone());
-                    }
-                    (Side::Left, Orientation::Normal) => {
-                        map.insert(Side::Bottom, discriminant.clone());
-                    }
-                    (Side::Top, Orientation::Normal) => {
-                        map.insert(Side::Left, discriminant.clone());
-                    }
-                    _ => {}
-                },
-                Transform::RotateLeftAndFlipHorizontally => match (side, orientation) {
-                    (Side::Right, Orientation::Reversed) => {
-                        map.insert(Side::Top, discriminant.clone());
-                    }
-                    (Side::Bottom, Orientation::Normal) => {
-                        map.insert(Side::Left, discriminant.clone());
-                    }
-                    (Side::Left, Orientation::Reversed) => {
-                        map.insert(Side::Bottom, discriminant.clone());
-                    }
-                    (Side::Top, Orientation::Normal) => {
-                        map.insert(Side::Right, discriminant.clone());
-                    }
-                    _ => {}
-                },
-                Transform::RotateRight => match (side, orientation) {
-                    (Side::Top, Orientation::Normal) => {
-                        map.insert(Side::Right, discriminant.clone());
-                    }
-                    (Side::Right, Orientation::Normal) => {
-                        map.insert(Side::Bottom, discriminant.clone());
-                    }
-                    (Side::Bottom, Orientation::Normal) => {
-                        map.insert(Side::Left, discriminant.clone());
-                    }
-                    (Side::Left, Orientation::Normal) => {
-                        map.insert(Side::Top, discriminant.clone());
-                    }
-                    _ => {}
-                },
-                Transform::RotateRightAndFlipHorizontally => match (side, orientation) {
-                    (Side::Top, Orientation::Normal) => {
-                        map.insert(Side::Left, discriminant.clone());
-                    }
-                    (Side::Right, Orientation::Reversed) => {
-                        map.insert(Side::Bottom, discriminant.clone());
-                    }
-                    (Side::Bottom, Orientation::Normal) => {
-                        map.insert(Side::Right, discriminant.clone());
-                    }
-                    (Side::Left, Orientation::Reversed) => {
-                        map.insert(Side::Top, discriminant.clone());
-                    }
-                    _ => {}
-                },
-            });
-        map
-    }
 }
 
 impl Connections {
@@ -447,7 +353,7 @@ impl Connections {
     }
 }
 
-impl Grid {
+impl<'a> Grid<'a> {
     fn export(&self) -> Image {
         let tile_length = self
             .tiles
@@ -475,6 +381,36 @@ impl Grid {
         }
 
         Image { cells }
+    }
+
+    #[allow(dead_code)]
+    fn print(&self) {
+        let tile_length = self
+            .tiles
+            .iter()
+            .nth(0)
+            .unwrap()
+            .iter()
+            .nth(0)
+            .unwrap()
+            .cells_with_borders
+            .len();
+        for grid_row in &self.tiles {
+            for tile in grid_row {
+                print!("[  {}  ] ", tile.id);
+            }
+            println!();
+
+            for input_row in 0..tile_length {
+                for tile in grid_row {
+                    for cell in tile.cells_with_borders.iter().nth(input_row).unwrap() {
+                        print!("{:?}", cell);
+                    }
+                    print!(" ");
+                }
+                println!();
+            }
+        }
     }
 }
 
@@ -599,93 +535,104 @@ fn find_corner_tiles<'a>(tiles: &'a [Tile], connections: &Connections) -> Vec<&'
 #[must_use]
 pub fn part2(input: &str) -> usize {
     let tiles: Vec<Tile> = Tile::parse(input);
-    let grid: Grid = assemble_grid(&tiles);
+
+    let mut all_locked_tiles: Vec<LockedTile> = vec![];
+
+    for tile in &tiles {
+        all_locked_tiles.push(LockedTile::from_tile(tile, Transform::Nothing));
+        all_locked_tiles.push(LockedTile::from_tile(tile, Transform::RotateRight));
+        all_locked_tiles.push(LockedTile::from_tile(tile, Transform::RotateLeft));
+        all_locked_tiles.push(LockedTile::from_tile(
+            tile,
+            Transform::RotateLeftAndFlipHorizontally,
+        ));
+        all_locked_tiles.push(LockedTile::from_tile(
+            tile,
+            Transform::RotateRightAndFlipHorizontally,
+        ));
+        all_locked_tiles.push(LockedTile::from_tile(tile, Transform::FlipVertically));
+        all_locked_tiles.push(LockedTile::from_tile(tile, Transform::FlipHorizontally));
+        all_locked_tiles.push(LockedTile::from_tile(tile, Transform::FlipBoth));
+    }
+
+    let grid: Grid = assemble_grid(&tiles, &all_locked_tiles);
+    //    grid.print();
 
     let mut image: Image = grid.export();
-    let mut sea_monsters: Vec<(usize, usize)> = vec![];
+    //    image.print();
 
     for _rotations in 0..3 {
         image.rotate();
         for _flips in 0..2 {
             image.flip();
-            sea_monsters = image.find_sea_monsters();
+            let sea_monsters = image.find_sea_monsters();
 
             if sea_monsters.len() > 0 {
-                break;
+                return image.on_count() - sea_monsters.len() * 15;
             }
         }
     }
 
-    image.on_count() - sea_monsters.len() * 15
+    panic!("if we got here, we failed :'(");
 }
 
-fn assemble_grid(all_tiles: &Vec<Tile>) -> Grid {
+fn assemble_grid<'a>(
+    all_tiles: &Vec<Tile>,
+    possible_locked_tiles: &'a Vec<LockedTile>,
+) -> Grid<'a> {
     let length: usize = (all_tiles.len() as f32).sqrt() as usize;
-    let mut tiles: Vec<Vec<LockedTile>> = (0..length).map(|_| vec![]).collect();
+    let mut tiles: Vec<Vec<&LockedTile>> = (0..length).map(|_| vec![]).collect();
     let mut used_tile_ids: Vec<TileID> = vec![];
 
     let connections: Connections = Connections::new(&all_tiles);
-    let corner_tile: &Tile = find_corner_tiles(&all_tiles, &connections)[1];
-    dbg!(&corner_tile.id);
+    let corner_tile: &Tile = find_corner_tiles(&all_tiles, &connections)[0];
 
     let adjacent_tiles = find_adjacent_tiles(&corner_tile, &all_tiles);
     let transform = Transform::from_adjacent_tiles(&adjacent_tiles);
-
-    //    dbg!(&all_tiles
-    //        .iter()
-    //        .map(|tile| (tile.id, &tile.side_discriminants))
-    //        .collect::<Vec<(TileID, _)>>());
+    let corner_locked_tile = possible_locked_tiles
+        .iter()
+        .find(|tile| tile.id == corner_tile.id && tile.transform == transform)
+        .unwrap();
 
     used_tile_ids.push(corner_tile.id);
-    tiles[0].push(LockedTile::from_tile(&corner_tile, transform));
+    tiles[0].push(&corner_locked_tile);
+
+    #[allow(dead_code)]
+    fn print_tiles(tiles: &Vec<Vec<LockedTile>>) {
+        for row in tiles {
+            for tile in row {
+                println!("{} ", tile.id);
+                Tile::print_cells(&tile.cells_with_borders);
+            }
+            println!();
+        }
+        println!();
+    }
 
     for col in 0..length {
         for row in 1..length {
+            //            print_tiles(&tiles);
             let previous_locked_tile = &tiles[row - 1][col];
-            previous_locked_tile.print();
             let next_locked_tile = next_locked_tile(
-                &all_tiles,
+                &possible_locked_tiles,
                 &used_tile_ids,
                 Side::Top,
                 previous_locked_tile.side_discriminants[&Side::Bottom].clone(),
             );
 
-            next_locked_tile.print();
+            //            next_locked_tile.print();
             used_tile_ids.push(next_locked_tile.id);
             tiles[row].push(next_locked_tile);
         }
 
         if col < length - 1 {
-            dbg!(&tiles[0][col]);
-            let mut next_column_locked_tile = next_locked_tile(
-                &all_tiles,
+            let next_column_locked_tile = next_locked_tile(
+                &possible_locked_tiles,
                 &used_tile_ids,
                 Side::Left,
                 tiles[0][col].side_discriminants[&Side::Right].clone(),
             );
-
-            if all_tiles
-                .iter()
-                .filter(|tile| {
-                    !(used_tile_ids.contains(&tile.id) || tile.id == next_column_locked_tile.id)
-                })
-                .any(|tile| {
-                    tile.side_discriminants
-                        .get(&next_column_locked_tile.side_discriminants[&Side::Top])
-                        .is_some()
-                })
-            {
-                next_column_locked_tile = LockedTile::from_tile(
-                    &all_tiles
-                        .iter()
-                        .find(|tile| tile.id == next_column_locked_tile.id)
-                        .unwrap(),
-                    Transform::FlipVertically,
-                );
-            }
-
-            next_column_locked_tile.print();
-            println!("\n");
+            //            next_column_locked_tile.print();
             used_tile_ids.push(next_column_locked_tile.id);
             tiles[0].push(next_column_locked_tile);
         }
@@ -694,53 +641,17 @@ fn assemble_grid(all_tiles: &Vec<Tile>) -> Grid {
     Grid { tiles }
 }
 
-fn next_locked_tile(
-    tiles: &Vec<Tile>,
+fn next_locked_tile<'a>(
+    possible_locked_tiles: &'a Vec<LockedTile>,
     used_tile_ids: &Vec<TileID>,
     target_side: Side,
     discriminant: Discriminant,
-) -> LockedTile {
-    dbg!(&target_side, &discriminant, &used_tile_ids);
-    for tile in tiles.iter().filter(|t| !used_tile_ids.contains(&t.id)) {
-        if let Some(&(side, orientation)) = tile.side_discriminants.get(&discriminant) {
-            let transform = match (target_side, side, orientation) {
-                (Side::Top, Side::Bottom, Orientation::Normal)
-                | (Side::Bottom, Side::Top, Orientation::Normal) => Transform::FlipVertically,
-                (Side::Top, Side::Bottom, Orientation::Reversed)
-                | (Side::Bottom, Side::Top, Orientation::Reversed)
-                | (Side::Left, Side::Right, Orientation::Reversed)
-                | (Side::Right, Side::Left, Orientation::Reversed) => Transform::FlipBoth,
-                (Side::Left, Side::Right, Orientation::Normal)
-                | (Side::Right, Side::Left, Orientation::Normal) => Transform::FlipHorizontally,
-                (Side::Left, Side::Top, Orientation::Reversed) => {
-                    Transform::RotateLeftAndFlipHorizontally
-                }
-                (Side::Top, Side::Right, Orientation::Normal) => Transform::RotateLeft,
-                (Side::Top, Side::Left, Orientation::Normal) => Transform::RotateRight,
-                (Side::Top, Side::Right, Orientation::Reversed) => {
-                    Transform::RotateLeftAndFlipHorizontally
-                }
-                (Side::Top, Side::Left, Orientation::Reversed) => {
-                    Transform::RotateRightAndFlipHorizontally
-                }
-                (side, other_side, Orientation::Normal) if side == other_side => Transform::Nothing,
-                (side, other_side, Orientation::Reversed)
-                    if side == other_side && ([Side::Top, Side::Bottom].contains(&side)) =>
-                {
-                    Transform::FlipHorizontally
-                }
-                (side, other_side, Orientation::Reversed)
-                    if side == other_side && ([Side::Left, Side::Right].contains(&side)) =>
-                {
-                    Transform::FlipVertically
-                }
-                _ => panic!("TBD: {:?} {:?} {:?}", target_side, side, orientation),
-            };
-            return LockedTile::from_tile(&tile, transform);
-        }
-    }
-
-    panic!("must find a matching tile")
+) -> &'a LockedTile {
+    possible_locked_tiles
+        .iter()
+        .filter(|tile| !used_tile_ids.contains(&tile.id))
+        .find(|tile| tile.side_discriminants[&target_side] == discriminant)
+        .unwrap()
 }
 
 fn find_adjacent_tiles(
