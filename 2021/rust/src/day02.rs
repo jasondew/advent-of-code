@@ -18,34 +18,19 @@ impl Default for Position {
 }
 
 #[derive(Debug)]
-enum Direction {
-    Up,
-    Down,
-    Forward,
-}
-
-#[derive(Debug)]
-struct Command {
-    direction: Direction,
-    amount: usize,
+enum Command {
+    Up(usize),
+    Down(usize),
+    Forward(usize),
 }
 
 impl FromStr for Command {
     type Err = &'static str;
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         match input.split(" ").collect::<Vec<&str>>()[..] {
-            ["up", amount_string] => Ok(Self {
-                direction: Direction::Up,
-                amount: amount_string.parse().unwrap(),
-            }),
-            ["down", amount_string] => Ok(Self {
-                direction: Direction::Down,
-                amount: amount_string.parse().unwrap(),
-            }),
-            ["forward", amount_string] => Ok(Self {
-                direction: Direction::Forward,
-                amount: amount_string.parse().unwrap(),
-            }),
+            ["up", amount_string] => Ok(Self::Up(amount_string.parse().unwrap())),
+            ["down", amount_string] => Ok(Self::Down(amount_string.parse().unwrap())),
+            ["forward", amount_string] => Ok(Self::Forward(amount_string.parse().unwrap())),
             _ => Err("invalid input"),
         }
     }
@@ -57,10 +42,10 @@ pub fn part1(input: &str) -> usize {
     let mut position = Position::default();
 
     for command in commands {
-        match command.direction {
-            Direction::Forward => position.horizontal += command.amount,
-            Direction::Up => position.depth -= command.amount,
-            Direction::Down => position.depth += command.amount,
+        match command {
+            Command::Forward(amount) => position.horizontal += amount,
+            Command::Up(amount) => position.depth -= amount,
+            Command::Down(amount) => position.depth += amount,
         }
     }
 
@@ -73,13 +58,13 @@ pub fn part2(input: &str) -> usize {
     let mut position = Position::default();
 
     for command in commands {
-        match command.direction {
-            Direction::Forward => {
-                position.horizontal += command.amount;
-                position.depth += position.aim * command.amount;
+        match command {
+            Command::Forward(amount) => {
+                position.horizontal += amount;
+                position.depth += position.aim * amount;
             }
-            Direction::Up => position.aim -= command.amount,
-            Direction::Down => position.aim += command.amount,
+            Command::Up(amount) => position.aim -= amount,
+            Command::Down(amount) => position.aim += amount,
         }
     }
 
