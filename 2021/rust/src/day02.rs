@@ -26,12 +26,16 @@ enum Command {
 
 impl FromStr for Command {
     type Err = &'static str;
+
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        match input.split(" ").collect::<Vec<&str>>()[..] {
-            ["up", amount_string] => Ok(Self::Up(amount_string.parse().unwrap())),
-            ["down", amount_string] => Ok(Self::Down(amount_string.parse().unwrap())),
-            ["forward", amount_string] => Ok(Self::Forward(amount_string.parse().unwrap())),
-            _ => Err("invalid input"),
+        let (direction, amount_string) = input.split_once(" ").ok_or("invalid command")?;
+        let amount = amount_string.parse().map_err(|_| "invalid amount")?;
+
+        match direction {
+            "up" => Ok(Self::Up(amount)),
+            "down" => Ok(Self::Down(amount)),
+            "forward" => Ok(Self::Forward(amount)),
+            _ => Err("invalid direction"),
         }
     }
 }
