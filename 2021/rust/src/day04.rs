@@ -99,15 +99,7 @@ impl FromStr for Board {
 
 #[must_use]
 pub fn part1(input: &str) -> usize {
-    let (numbers_string, boards_string) = input.split_once("\n\n").unwrap();
-    let numbers: Vec<usize> = numbers_string
-        .split(",")
-        .map(|string| string.parse().unwrap())
-        .collect();
-    let mut boards: Vec<Board> = boards_string
-        .split("\n\n")
-        .map(|board_string| board_string.parse().unwrap())
-        .collect();
+    let (numbers, mut boards) = parse(input);
 
     for number in numbers {
         for board in boards.iter_mut() {
@@ -123,15 +115,7 @@ pub fn part1(input: &str) -> usize {
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    let (numbers_string, boards_string) = input.split_once("\n\n").unwrap();
-    let numbers: Vec<usize> = numbers_string
-        .split(",")
-        .map(|string| string.parse().unwrap())
-        .collect();
-    let mut boards: Vec<Board> = boards_string
-        .split("\n\n")
-        .map(|board_string| board_string.parse().unwrap())
-        .collect();
+    let (numbers, mut boards) = parse(input);
 
     for number in numbers {
         for board in boards.iter_mut() {
@@ -146,6 +130,20 @@ pub fn part2(input: &str) -> usize {
     }
 
     return 0;
+}
+
+fn parse(input: &str) -> (Vec<usize>, Vec<Board>) {
+    let (numbers_string, boards_string) = input.split_once("\n\n").unwrap();
+    let numbers: Vec<usize> = numbers_string
+        .split(",")
+        .map(|string| string.parse().unwrap())
+        .collect();
+    let boards: Vec<Board> = boards_string
+        .split("\n\n")
+        .map(|board_string| board_string.parse().unwrap())
+        .collect();
+
+    (numbers, boards)
 }
 
 #[cfg(test)]
