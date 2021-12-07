@@ -76,11 +76,6 @@ where
     let candidate_position: usize = current_position + delta;
     let candidate_cost: usize = total_fuel_burn(positions, candidate_position, &loss_function);
 
-    println!(
-        "step: {}  current: {}=>{}  candidate: {}=>{}",
-        steps, candidate_position, current_cost, candidate_position, candidate_cost
-    );
-
     if candidate_cost < current_cost {
         minimize_step(
             positions,
