@@ -345,6 +345,7 @@ pub fn part1(input: &str) -> usize {
     overlap_count(line_segments)
 }
 
+#[allow(dead_code)]
 fn overlap_count_old_and_busted(line_segments: Vec<LineSegment>) -> usize {
     let mut overlaps: HashSet<Point> = HashSet::new();
 
@@ -364,11 +365,7 @@ fn overlap_count(line_segments: Vec<LineSegment>) -> usize {
 
     for line_segment in line_segments {
         for point in line_segment.to_points().into_iter() {
-            if let Some(count) = point_counts.get(&point) {
-                point_counts.insert(point, count + 1);
-            } else {
-                point_counts.insert(point, 1);
-            }
+            *point_counts.entry(point).or_insert(0) += 1;
         }
     }
 

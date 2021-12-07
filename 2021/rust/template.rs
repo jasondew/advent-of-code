@@ -1,24 +1,30 @@
 #[must_use]
 pub fn part1(input: &str) -> usize {
-    input.len()
+    input.lines().count()
 }
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    input.len()
+    input.chars().count()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn input() -> &'static str {
+        "\
+        foobar
+        \n"
+    }
+
     #[test]
     fn part1_example() {
-        assert_eq!(part1("foobar"), 6)
+        assert_eq!(part1(input()), 2)
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2("quux"), 4)
+        assert_eq!(part2(input()), 16)
     }
 }
