@@ -47,7 +47,7 @@ pub fn flash_count(input: &str, steps: usize) -> usize {
     //    println!("Before any steps:");
     //    print(&octopi);
 
-    for step_count in 1..=steps {
+    for _step_count in 1..=steps {
         flash_count += step(&mut octopi);
         //        println!("After step {}:", step_count);
         //        print(&octopi);
@@ -146,6 +146,7 @@ fn neighborhood(location: &Point) -> Vec<Point> {
     ]
 }
 
+#[allow(dead_code)]
 fn print(octopi: &HashMap<Point, Octopus>) {
     for y in 0..10 {
         for x in 0..10 {
@@ -180,7 +181,6 @@ fn parse(input: &str) -> HashMap<Point, Octopus> {
 #[must_use]
 pub fn part2(input: &str) -> usize {
     let mut octopi = parse(input);
-    let mut flash_count: usize = 0;
 
     for step_count in 1..=1000 {
         step(&mut octopi);
