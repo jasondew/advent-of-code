@@ -15,6 +15,7 @@ pub fn part1(input: &str) -> usize {
     let all_paths: Vec<Path> = traverse(
         &connections,
         &small_caves_visitable_once,
+        &mut HashMap::new(),
         &start_cave,
         vec![],
     )
@@ -39,6 +40,7 @@ pub fn part2(input: &str) -> usize {
     let all_paths: Vec<Path> = traverse(
         &connections,
         &small_caves_visitable_twice,
+        &mut HashMap::new(),
         &start_cave,
         vec![],
     )
@@ -46,12 +48,17 @@ pub fn part2(input: &str) -> usize {
     .filter(|path| path[path.len() - 1] == "end")
     .collect();
 
+    //    for path in &all_paths {
+    //        println!("{}", path.join(","));
+    //    }
+
     all_paths.len()
 }
 
 fn traverse<'a>(
     connections: &'a HashMap<Cave, Vec<Cave>>,
     visitable: &dyn Fn(&Cave, &Path) -> bool,
+    cache: &mut HashMap<(&'a Cave, bool), Path<'a>>,
     current_cave: &'a Cave,
     mut path: Path<'a>,
 ) -> Vec<Path<'a>> {
@@ -66,10 +73,20 @@ fn traverse<'a>(
         .unwrap()
         .iter()
         .flat_map(|next_cave| {
-            if visitable(next_cave, &path) {
-                traverse(connections, visitable, next_cave, path.clone())
+            let x = small_cave_visited_twice(&path);
+
+            if let Some(rest_of_the_path) = cache.get(&(current_cave, x)) {
+                let mut y = path.clone();
+                y.append(&mut rest_of_the_path.clone());
+                vec![y]
             } else {
-                vec![]
+                if visitable(next_cave, &path) {
+                    traverse(connections, visitable, cache, next_cave, path.clone())
+                } else {
+                    dbg!((current_cave, x), &path);
+                    cache.insert((current_cave, x), path.clone());
+                    vec![]
+                }
             }
         })
         .collect()
