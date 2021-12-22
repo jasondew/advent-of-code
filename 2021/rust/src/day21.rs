@@ -16,7 +16,7 @@ impl Debug for Player {
     }
 }
 
-type DiracPlayer = HashMap<Player, usize>;
+type Games = HashMap<(Player, Player), usize>;
 
 #[must_use]
 pub fn part1(input: &str) -> usize {
@@ -54,8 +54,10 @@ fn won(player: &Player) -> bool {
 #[must_use]
 pub fn part2(input: &str) -> usize {
     let (player1, player2) = parse(input);
-    let mut player1s: DiracPlayer = init_players(player1.position);
-    let mut player2s: DiracPlayer = init_players(player2.position);
+    let mut games: Games = init_games(player1.position, player2.position);
+    let mut new_games: Games = HashMap::new();
+    let dirac_moves: &[(Position, usize)] =
+        &[(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)];
 
     let mut rounds: usize = 0;
     let mut player1_wins: usize = 0;
@@ -63,26 +65,46 @@ pub fn part2(input: &str) -> usize {
 
     loop {
         rounds += 1;
-        if player1s.values().all(|count| *count == 0) || player2s.values().all(|count| *count == 0)
-        {
+
+        if games.values().all(|count| *count == 0) {
             break;
         }
 
-        play_dirac(&mut player1s);
-        for (player, count) in player1s.iter_mut() {
-            if player.score >= 21 {
-                player1_wins += *count;
-                *count = 0;
+        for ((player1, player2), count) in games.iter() {
+            for (player1_moves, player1_multiplier) in dirac_moves {
+                // player 1's turn
+                let (player1_position, player1_score) = play_turn(player1, *player1_moves);
+                if player1_score >= 21 {
+                    player1_wins += count * player1_multiplier;
+                } else {
+                    for (player2_moves, player2_multiplier) in dirac_moves {
+                        // player 2's turn
+                        let (player2_position, player2_score) = play_turn(player2, *player2_moves);
+
+                        if player2_score >= 21 {
+                            player2_wins += count * player2_multiplier;
+                        } else {
+                            new_games.insert(
+                                (
+                                    Player {
+                                        position: player1_position,
+                                        score: player1_score,
+                                    },
+                                    Player {
+                                        position: player2_position,
+                                        score: player2_score,
+                                    },
+                                ),
+                                count * player1_multiplier * player2_multiplier,
+                            );
+                        }
+                    }
+                }
             }
         }
 
-        play_dirac(&mut player2s);
-        for (player, count) in player2s.iter_mut() {
-            if player.score >= 21 {
-                player2_wins += *count;
-                *count = 0;
-            }
-        }
+        std::mem::swap(&mut games, &mut new_games);
+        new_games.clear();
     }
 
     dbg!(rounds, player1_wins, player2_wins);
@@ -90,48 +112,31 @@ pub fn part2(input: &str) -> usize {
     player1_wins.max(player2_wins)
 }
 
-fn play_dirac(players: &mut DiracPlayer) {
-    let dirac_moves: &[(Position, usize)] =
-        &[(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)];
-    let mut new_players: Vec<(Player, usize)> = Vec::new();
-
-    for (player, player_count) in players.iter_mut() {
-        if *player_count > 0 {
-            for (moves, count) in dirac_moves {
-                let new_position = (player.position + moves) % 10;
-                let new_score = player.score + (player.position as Score) + 1;
-
-                new_players.push((
-                    Player {
-                        position: new_position,
-                        score: new_score,
-                    },
-                    (*count * *player_count),
-                ));
-            }
-            *player_count = 0;
-        }
-    }
-
-    for (player, count) in new_players {
-        *players.entry(player).or_insert(0) += count;
-    }
+fn play_turn(player: &Player, moves: Position) -> (Position, Score) {
+    (
+        (player.position + moves) % 10,
+        player.score + (player.position as Score) + 1,
+    )
 }
 
-fn init_players(initial_position: Position) -> DiracPlayer {
-    let mut dirac_player: DiracPlayer = HashMap::new();
+fn init_games(position1: Position, position2: Position) -> Games {
+    let mut games: Games = HashMap::new();
 
-    for position in 0..10 {
-        dirac_player.insert(
+    games.insert(
+        (
             Player {
-                position: position,
+                position: position1,
                 score: 0,
             },
-            if position == initial_position { 1 } else { 0 },
-        );
-    }
+            Player {
+                position: position2,
+                score: 0,
+            },
+        ),
+        1,
+    );
 
-    dirac_player
+    games
 }
 
 fn parse(input: &str) -> (Player, Player) {
