@@ -24,6 +24,7 @@ day!(day01, "01");
 day!(day02, "02");
 day!(day03, "03");
 day!(day04, "04");
+day!(day05, "05");
 
-criterion_group!(benches, day01, day02, day03, day04);
+criterion_group!(benches, day01, day02, day03, day04, day05);
 criterion_main!(benches);
