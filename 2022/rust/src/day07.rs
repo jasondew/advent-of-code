@@ -71,8 +71,10 @@ pub fn part2(input: &str) -> usize {
         value1.partial_cmp(value2).unwrap()
     });
 
-    let (_name, size) =
-        sorted.iter().find(|(_name, size)| *size > 8_381_165).unwrap();
+    let (_name, size) = sorted
+        .iter()
+        .find(|(_name, size)| *size > 8_381_165)
+        .unwrap();
 
     *size
 }
@@ -119,11 +121,11 @@ fn parse(input: &str) -> Directory {
                 .collect();
 
             if command[0] == "cd" {
-                match command[1] {
-                    "/" => {
+                match command.get(1) {
+                    Some(&"/") => {
                         current_directory = &mut root;
                     }
-                    ".." => {
+                    Some(&"..") => {
                         let parent_path = current_directory.parent_path();
                         let new_directory = if parent_path == "/" {
                             &mut root
@@ -134,7 +136,7 @@ fn parse(input: &str) -> Directory {
 
                         current_directory = new_directory;
                     }
-                    name => {
+                    Some(&name) => {
                         let new_directory = current_directory
                             .entries
                             .iter_mut()
@@ -146,11 +148,12 @@ fn parse(input: &str) -> Directory {
                                         None
                                     }
                                 }
-                                _ => None,
+                                Entry::File(_) => None,
                             })
                             .expect("cd to nonexistent directory");
                         current_directory = new_directory;
                     }
+                    _ => {}
                 };
             }
         } else {
@@ -193,7 +196,7 @@ fn find_directory<'a>(
                 find_directory(child_directory, path)
             }
         }
-        _ => None,
+        Entry::File(_) => None,
     })
 }
 

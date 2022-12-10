@@ -18,7 +18,7 @@ fn group_sum(input: &str) -> Vec<usize> {
 
     for line in input.lines() {
         if let Ok(value) = line.trim().parse::<usize>() {
-            current_total += value
+            current_total += value;
         } else {
             totals.push(current_total);
             current_total = 0;

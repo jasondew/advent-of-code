@@ -25,7 +25,7 @@ pub fn part1(input: &str) -> String {
 
     for instruction in instructions {
         for _ in 1..=instruction.count {
-            move_single(&mut stacks, instruction.from, instruction.to)
+            move_single(&mut stacks, instruction.from, instruction.to);
         }
     }
 
@@ -45,7 +45,7 @@ pub fn part2(input: &str) -> String {
             instruction.from,
             instruction.to,
             instruction.count,
-        )
+        );
     }
 
     stacks
@@ -54,7 +54,7 @@ pub fn part2(input: &str) -> String {
         .collect()
 }
 
-fn move_single(stacks: &mut Vec<Stack>, from_id: StackId, to_id: StackId) {
+fn move_single(stacks: &mut [Stack], from_id: StackId, to_id: StackId) {
     let crate_to_move = stacks
         .iter_mut()
         .find(|stack| stack.id == from_id)
@@ -71,7 +71,7 @@ fn move_single(stacks: &mut Vec<Stack>, from_id: StackId, to_id: StackId) {
 }
 
 fn move_multiple(
-    stacks: &mut Vec<Stack>,
+    stacks: &mut [Stack],
     from_id: StackId,
     to_id: StackId,
     count: usize,
@@ -85,11 +85,10 @@ fn move_multiple(
     let mut crates_to_move: VecDeque<char> = VecDeque::new();
 
     for _ in 1..=count {
-        crates_to_move.push_front(from_stack.pop_front().unwrap())
+        crates_to_move.push_front(from_stack.pop_front().unwrap());
     }
 
-    let to_stack =
-        &mut stacks.iter_mut().find(|stack| stack.id == to_id).unwrap();
+    let to_stack = stacks.iter_mut().find(|stack| stack.id == to_id).unwrap();
 
     for crate_to_move in crates_to_move {
         to_stack.contents.push_front(crate_to_move);

@@ -33,8 +33,8 @@ pub fn part1(input: &str) -> usize {
     for (opponent, suggestion) in pairs {
         let opponent_shape = Shape::from_code(opponent);
         let suggested_shape = Shape::from_encrypted(suggestion);
-        score += shape_score(&suggested_shape)
-            + outcome_score(&suggested_shape, &opponent_shape);
+        score += shape_score(suggested_shape)
+            + outcome_score(suggested_shape, opponent_shape);
     }
 
     score
@@ -48,20 +48,20 @@ pub fn part2(input: &str) -> usize {
     for (opponent, desired_outcome) in pairs {
         let opponent_shape = Shape::from_code(opponent);
         let your_shape = match desired_outcome {
-            "X" => losing_shape(&opponent_shape),
+            "X" => losing_shape(opponent_shape),
             "Y" => opponent_shape,
-            "Z" => winning_shape(&opponent_shape),
+            "Z" => winning_shape(opponent_shape),
             other => panic!("expected valid desired outcome code, got {other}"),
         };
 
-        score += shape_score(&your_shape)
-            + outcome_score(&your_shape, &opponent_shape);
+        score +=
+            shape_score(your_shape) + outcome_score(your_shape, opponent_shape);
     }
 
     score
 }
 
-fn winning_shape(opponent_shape: &Shape) -> Shape {
+fn winning_shape(opponent_shape: Shape) -> Shape {
     match opponent_shape {
         Shape::Rock => Shape::Paper,
         Shape::Paper => Shape::Scissors,
@@ -69,7 +69,7 @@ fn winning_shape(opponent_shape: &Shape) -> Shape {
     }
 }
 
-fn losing_shape(opponent_shape: &Shape) -> Shape {
+fn losing_shape(opponent_shape: Shape) -> Shape {
     match opponent_shape {
         Shape::Rock => Shape::Scissors,
         Shape::Paper => Shape::Rock,
@@ -77,23 +77,17 @@ fn losing_shape(opponent_shape: &Shape) -> Shape {
     }
 }
 
-fn shape_score(shape: &Shape) -> usize {
-    *shape as usize
+fn shape_score(shape: Shape) -> usize {
+    shape as usize
 }
 
-fn outcome_score(yours: &Shape, opponents: &Shape) -> usize {
+fn outcome_score(yours: Shape, opponents: Shape) -> usize {
     use Shape::{Paper, Rock, Scissors};
 
     match (yours, opponents) {
-        (Rock, Rock) => 3,
-        (Rock, Paper) => 0,
-        (Rock, Scissors) => 6,
-        (Scissors, Rock) => 0,
-        (Scissors, Paper) => 6,
-        (Scissors, Scissors) => 3,
-        (Paper, Rock) => 6,
-        (Paper, Paper) => 3,
-        (Paper, Scissors) => 0,
+        (Rock, Scissors) | (Paper, Rock) | (Scissors, Paper) => 6,
+        (Rock, Rock) | (Paper, Paper) | (Scissors, Scissors) => 3,
+        (Rock, Paper) | (Paper, Scissors) | (Scissors, Rock) => 0,
     }
 }
 

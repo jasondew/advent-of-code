@@ -30,7 +30,7 @@ pub fn part1(input: &str) -> isize {
     for instruction in instructions {
         for _ in 0..instruction.cycle_count() {
             if record_signal(cycle) {
-                signal_strengths.push(cycle as isize * x);
+                signal_strengths.push(isize::try_from(cycle).unwrap() * x);
             }
             cycle += 1;
         }
@@ -52,7 +52,7 @@ pub fn part2(input: &str) -> Vec<String> {
     for instruction in instructions {
         for _ in 0..instruction.cycle_count() {
             let row = (cycle - 1) / 40;
-            let sprite = ((cycle - 1) % 40) as isize;
+            let sprite = isize::try_from((cycle - 1) % 40).unwrap();
             crt[row].push(if (sprite - x).abs() <= 1 { '#' } else { '.' });
 
             cycle += 1;

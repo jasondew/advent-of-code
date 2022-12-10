@@ -80,7 +80,7 @@ pub fn part2(input: &str) -> usize {
     let mut head = Position::default();
     let mut knots = Vec::new();
     for _ in 0..9 {
-        knots.push(Position::default())
+        knots.push(Position::default());
     }
 
     let mut visited: HashSet<Position> = HashSet::new();

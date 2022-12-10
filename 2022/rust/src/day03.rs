@@ -16,7 +16,7 @@ pub fn part1(input: &str) -> usize {
         }
     }
 
-    common_chars.iter().map(priority).sum()
+    common_chars.into_iter().map(priority).sum()
 }
 
 #[must_use]
@@ -37,11 +37,11 @@ pub fn part2(input: &str) -> usize {
         }
     }
 
-    common_chars.iter().map(priority).sum()
+    common_chars.into_iter().map(priority).sum()
 }
 
-fn priority(ch: &char) -> usize {
-    let code: usize = *ch as usize;
+fn priority(ch: char) -> usize {
+    let code: usize = ch as usize;
 
     if code > 96 {
         code - 96
