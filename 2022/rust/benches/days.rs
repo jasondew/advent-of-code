@@ -29,8 +29,10 @@ day!(day06, "06");
 day!(day07, "07");
 day!(day08, "08");
 day!(day09, "09");
+day!(day10, "10");
 
 criterion_group!(
-    benches, day01, day02, day03, day04, day05, day06, day07, day08, day09
+    benches, day01, day02, day03, day04, day05, day06, day07, day08, day09,
+    day10
 );
 criterion_main!(benches);
