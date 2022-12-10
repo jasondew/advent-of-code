@@ -16,7 +16,7 @@ pub fn part1(input: &str) -> usize {
         }
     }
 
-    common_chars.iter().map(|ch| priority(ch)).sum()
+    common_chars.iter().map(priority).sum()
 }
 
 #[must_use]
@@ -27,7 +27,7 @@ pub fn part2(input: &str) -> usize {
     for group in rucksacks.chunks(3) {
         let first_rucksack: &str = group.iter().next().unwrap();
         let other_rucksacks: Vec<&str> =
-            group.iter().skip(1).cloned().collect();
+            group.iter().skip(1).copied().collect();
 
         for ch in first_rucksack.chars() {
             if other_rucksacks.iter().all(|rucksack| rucksack.contains(ch)) {
@@ -37,7 +37,7 @@ pub fn part2(input: &str) -> usize {
         }
     }
 
-    common_chars.iter().map(|ch| priority(ch)).sum()
+    common_chars.iter().map(priority).sum()
 }
 
 fn priority(ch: &char) -> usize {
@@ -51,7 +51,7 @@ fn priority(ch: &char) -> usize {
 }
 
 fn parse(input: &str) -> Vec<&str> {
-    input.lines().map(|line| line.trim()).collect()
+    input.lines().map(str::trim).collect()
 }
 
 #[cfg(test)]

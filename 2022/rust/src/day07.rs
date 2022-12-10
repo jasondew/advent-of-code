@@ -72,7 +72,7 @@ pub fn part2(input: &str) -> usize {
     });
 
     let (_name, size) =
-        sorted.iter().find(|(_name, size)| *size > 8381165).unwrap();
+        sorted.iter().find(|(_name, size)| *size > 8_381_165).unwrap();
 
     *size
 }
@@ -87,7 +87,7 @@ fn compute_totals(directory: &Directory, totals: &mut HashMap<String, usize>) {
                     .or_insert(file.size);
             }
             Entry::Directory(child_directory) => {
-                compute_totals(&child_directory, totals);
+                compute_totals(child_directory, totals);
                 let child_directory_size: usize =
                     *totals.get(&child_directory.path()).unwrap();
 
@@ -154,7 +154,7 @@ fn parse(input: &str) -> Directory {
                 };
             }
         } else {
-            let (dir_or_size, name) = line.split_once(" ").unwrap();
+            let (dir_or_size, name) = line.split_once(' ').unwrap();
             let entry = if dir_or_size == "dir" {
                 let mut current_parents = current_directory.parents.clone();
 
@@ -264,11 +264,11 @@ $ ls
                     }),
                     Entry::File(File {
                         name: "b.txt".into(),
-                        size: 14848514
+                        size: 14_848_514
                     }),
                     Entry::File(File {
                         name: "c.dat".into(),
-                        size: 8504156
+                        size: 8_504_156
                     }),
                     Entry::Directory(Directory {
                         name: "d".into(),
@@ -276,19 +276,19 @@ $ ls
                         entries: vec![
                             Entry::File(File {
                                 name: "j".into(),
-                                size: 4060174
+                                size: 4_060_174
                             }),
                             Entry::File(File {
                                 name: "d.log".into(),
-                                size: 8033020
+                                size: 8_033_020
                             }),
                             Entry::File(File {
                                 name: "d.ext".into(),
-                                size: 5626152
+                                size: 5_626_152
                             }),
                             Entry::File(File {
                                 name: "k".into(),
-                                size: 7214296
+                                size: 7_214_296
                             }),
                         ]
                     }),
@@ -304,6 +304,6 @@ $ ls
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(input()), 24933642)
+        assert_eq!(part2(input()), 24_933_642)
     }
 }

@@ -92,7 +92,7 @@ pub fn part2(input: &str) -> usize {
 
             let mut previous_knot = &head;
 
-            for knot in knots.iter_mut() {
+            for knot in &mut knots {
                 if non_contiguous(previous_knot, knot) {
                     knot.go_towards(previous_knot);
                 }
@@ -114,7 +114,7 @@ fn parse(input: &str) -> Vec<Motion> {
         .lines()
         .map(|line| {
             let (direction_string, amount_string) =
-                line.trim().split_once(" ").unwrap();
+                line.trim().split_once(' ').unwrap();
             let direction = match direction_string {
                 "U" => Direction::Up,
                 "D" => Direction::Down,

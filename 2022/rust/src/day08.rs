@@ -130,7 +130,7 @@ fn parse(input: &str) -> HeightMap {
 
     for i in 0..row_major.len() {
         for row in &row_major {
-            col_major[i].push(row[i].clone())
+            col_major[i].push(row[i])
         }
     }
 

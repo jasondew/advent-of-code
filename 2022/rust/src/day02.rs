@@ -82,7 +82,7 @@ fn shape_score(shape: &Shape) -> usize {
 }
 
 fn outcome_score(yours: &Shape, opponents: &Shape) -> usize {
-    use Shape::*;
+    use Shape::{Paper, Rock, Scissors};
 
     match (yours, opponents) {
         (Rock, Rock) => 3,
@@ -101,7 +101,7 @@ fn parse(input: &str) -> Vec<(&str, &str)> {
     input
         .lines()
         .map(|line| {
-            let mut pair = line.trim().split_whitespace();
+            let mut pair = line.split_whitespace();
             (pair.next().unwrap(), pair.next().unwrap())
         })
         .collect()

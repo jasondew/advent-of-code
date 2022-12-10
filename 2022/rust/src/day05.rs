@@ -91,7 +91,7 @@ fn move_multiple(
     let to_stack =
         &mut stacks.iter_mut().find(|stack| stack.id == to_id).unwrap();
 
-    for crate_to_move in crates_to_move.into_iter() {
+    for crate_to_move in crates_to_move {
         to_stack.contents.push_front(crate_to_move);
     }
 }
