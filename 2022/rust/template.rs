@@ -5,7 +5,7 @@ pub fn part1(input: &str) -> usize {
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    input.chars().count()
+    input.lines().count()
 }
 
 #[cfg(test)]
@@ -25,6 +25,6 @@ mod tests {
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(input()), 16)
+        assert_eq!(part2(input()), 2)
     }
 }
