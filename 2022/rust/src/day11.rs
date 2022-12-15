@@ -85,7 +85,7 @@ pub fn part1(input: &str) -> usize {
 
     for _round in 0..20 {
         for id in &ids {
-            for (&id, _monkey) in &monkeys {
+            for &id in monkeys.keys() {
                 transfer_queue.insert(id, Vec::new());
             }
 
@@ -116,7 +116,7 @@ pub fn part2(input: &str) -> usize {
 
     for _round in 0..10_000 {
         for id in &ids {
-            for (&id, _monkey) in &monkeys {
+            for &id in monkeys.keys() {
                 transfer_queue.insert(id, Vec::new());
             }
 
@@ -157,7 +157,7 @@ fn parse(input: &str) -> HashMap<MonkeyID, Monkey> {
                 .unwrap()
                 .strip_prefix("Monkey ")
                 .unwrap()
-                .strip_suffix(":")
+                .strip_suffix(':')
                 .unwrap()
                 .parse::<MonkeyID>()
                 .unwrap();

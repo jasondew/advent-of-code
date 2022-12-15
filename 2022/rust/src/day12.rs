@@ -44,7 +44,7 @@ pub fn part1(input: &str) -> usize {
 pub fn part2(input: &str) -> usize {
     let (height_map, _start_position, target_position) = parse(input);
 
-    let start_positions: Vec<Position> = height_map
+    height_map
         .iter()
         .filter_map(
             |(position, height)| {
@@ -55,12 +55,7 @@ pub fn part2(input: &str) -> usize {
                 }
             },
         )
-        .copied()
-        .collect();
-
-    start_positions
-        .into_iter()
-        .filter_map(|start_position| {
+        .filter_map(|&start_position| {
             shortest_path(&height_map, start_position, target_position)
         })
         .map(|path| path.len() - 1)
@@ -113,7 +108,7 @@ fn possible_next_positions(
     height_map: &HeightMap,
     position: &Position,
 ) -> Vec<Position> {
-    let current_height = height_map.get(&position).unwrap();
+    let current_height = height_map.get(position).unwrap();
     let mut positions: Vec<Position> = vec![];
 
     positions.push(Position(position.0, position.1 + 1));
@@ -127,14 +122,13 @@ fn possible_next_positions(
         positions.push(Position(position.0 - 1, position.1));
     }
 
-    let x = positions
+    positions
         .into_iter()
-        .filter(|position| match height_map.get(&position) {
+        .filter(|position| match height_map.get(position) {
             Some(height) => height.0 <= current_height.0 + 1,
             None => false,
         })
-        .collect();
-    x
+        .collect()
 }
 
 fn parse(input: &str) -> (HeightMap, Position, Position) {
