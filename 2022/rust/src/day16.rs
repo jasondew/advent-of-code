@@ -16,59 +16,65 @@ pub fn part1(input: &str) -> usize {
         .keys()
         .map(|name| (name.clone(), find_distances(name.clone(), &valves)))
         .collect();
+    let closed_valves = valves
+        .iter()
+        .filter(|(_name, valve)| valve.flow_rate > 0)
+        .map(|(name, _valve)| name)
+        .collect();
 
-    dbg!(&distances);
-
-    let (path, pressure) = find_maximal_pressure(
+    let paths_with_pressure = all_paths_with_pressure(
         &valves,
         &distances,
+        closed_valves,
         &"AA".into(),
         vec!["AA".into()],
-        valves.keys().filter(|name| name != &"AA").collect(),
         30,
         0,
     );
 
-    dbg!(&path);
+    let (_path, pressure) = paths_with_pressure
+        .into_iter()
+        .max_by_key(|(_path, pressure)| pressure.clone())
+        .unwrap();
 
     pressure
 }
 
-fn find_maximal_pressure(
+fn all_paths_with_pressure(
     valves: &HashMap<ValveName, Valve>,
     distances: &HashMap<ValveName, HashMap<ValveName, usize>>,
-    current_name: &String,
-    path: Vec<ValveName>,
     closed_valves: HashSet<&ValveName>,
+    current_name: &ValveName,
+    path: Vec<ValveName>,
     time_left: usize,
     pressure_released: usize,
-) -> (Vec<ValveName>, usize) {
+) -> Vec<(Vec<ValveName>, usize)> {
     //    println!(
     //        "at {}, time_left={}, pressure_released={}",
     //        &current_name, &time_left, &pressure_released
     //    );
     if time_left == 0 {
-        return (path, pressure_released);
+        return vec![(path, pressure_released)];
     }
 
-    let options: Vec<(Vec<ValveName>, usize)> = closed_valves
+    closed_valves
         .iter()
         .filter_map(|next_name| {
             let next = &valves[*next_name];
             let time_required = distances[current_name][*next_name] + 1;
 
-            if time_required < time_left && next.flow_rate > 0 {
+            if time_required < time_left {
                 let mut new_closed_valves = closed_valves.clone();
                 new_closed_valves.remove(next_name);
                 let mut new_path = path.clone();
                 new_path.push(next_name.to_string());
 
-                Some(find_maximal_pressure(
+                Some(all_paths_with_pressure(
                     valves,
                     distances,
+                    new_closed_valves,
                     next_name,
                     new_path,
-                    new_closed_valves,
                     time_left - time_required,
                     pressure_released
                         + (time_left - time_required) * next.flow_rate,
@@ -77,17 +83,49 @@ fn find_maximal_pressure(
                 None
             }
         })
-        .collect();
-
-    options
-        .into_iter()
-        .max_by_key(|(_path, pressure)| pressure.clone())
-        .unwrap_or((path, pressure_released))
+        .collect()
 }
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    input.lines().count()
+    let valves = parse(input);
+    let distances: HashMap<ValveName, HashMap<ValveName, usize>> = valves
+        .keys()
+        .map(|name| (name.clone(), find_distances(name.clone(), &valves)))
+        .collect();
+    let closed_valves: HashSet<&ValveName> = valves
+        .iter()
+        .filter(|(_name, valve)| valve.flow_rate > 0)
+        .map(|(name, _valve)| name)
+        .collect();
+    let start_valve_name: String = "AA".into();
+
+    //    let (path1, pressure_released1) = maximal_pressure(
+    //        &valves,
+    //        &distances,
+    //        closed_valves.clone(),
+    //        &start_valve_name,
+    //        vec![],
+    //        26,
+    //        0,
+    //    );
+    //
+    //    dbg!(path1, pressure_released1);
+    //
+    //    let (path2, pressure_released2) = maximal_pressure(
+    //        &valves,
+    //        &distances,
+    //        closed_valves,
+    //        &start_valve_name,
+    //        vec![],
+    //        26,
+    //        0,
+    //    );
+    //
+    //    dbg!(path2, pressure_released2);
+    //
+    //    pressure_released1 + pressure_released2
+    0
 }
 
 fn find_distances(
@@ -175,6 +213,6 @@ Valve JJ has flow rate=21; tunnel leads to valve II\n"
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(input()), 10)
+        assert_eq!(part2(input()), 1707)
     }
 }
