@@ -22,10 +22,11 @@ macro_rules! day {
 
 day!(day01, "01");
 day!(day02, "02");
+day!(day03, "03");
 
 criterion_group! {
     name = benches;
     config = Criterion::default().significance_level(0.1).sample_size(25);
-    targets = day01, day02
+    targets = day01, day02, day03
 }
 criterion_main!(benches);
