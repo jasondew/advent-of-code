@@ -33,55 +33,36 @@ fn part2_with_start_tile(input: &str, start_tile: Tile) -> usize {
     map.insert(start_location, start_tile);
 
     let loop_path = find_loop(start_location, &map);
-    let mut looking_for_other_corner = false;
-    let mut seen_wall = false;
+    let mut inside = false;
     let mut in_count = 0;
-    let mut potential_in_count = 0;
 
     for y in 0..max_y {
-        dbg!(y);
         for x in 0..max_x {
             use Tile::*;
-
-            let tile_on_path = loop_path.contains(&(x, y));
+            let in_loop_path = loop_path.contains(&(x, y));
 
             match map.get(&(x, y)).unwrap() {
                 Ground => {
-                    if seen_wall {
-                        dbg!(("potential in", (x, y)));
-                        potential_in_count += 1;
+                    if inside {
+                        in_count += 1;
                     }
                 }
-                Horizontal => {}
-                Vertical => {
-                    if tile_on_path {
-                        if seen_wall {
-                            in_count += potential_in_count;
-                            potential_in_count = 0;
+                Vertical | SouthEast | SouthWest => {
+                    if in_loop_path {
+                        inside = !inside;
+                    } else {
+                        if inside {
+                            in_count += 1;
                         }
-                        seen_wall = !seen_wall;
                     }
                 }
-                _corner => {
-                    if tile_on_path {
-                        if looking_for_other_corner {
-                            looking_for_other_corner = false;
-
-                            if seen_wall {
-                                in_count += potential_in_count;
-                                potential_in_count = 0;
-                            }
-                            seen_wall = !seen_wall;
-                        } else {
-                            looking_for_other_corner = true;
-                        }
+                _ => {
+                    if inside && !in_loop_path {
+                        in_count += 1;
                     }
                 }
             }
         }
-        seen_wall = false;
-        potential_in_count = 0;
-        dbg!(in_count);
     }
 
     in_count
@@ -229,15 +210,27 @@ L7JLJL-JLJLJL--JLJ.L"
     }
 
     #[test]
-    fn part1_example() {
-        assert_eq!(part1_with_start_tile(input(), Tile::SouthEast), 4);
-        assert_eq!(part1_with_start_tile(input2(), Tile::SouthEast), 8);
+    fn part1_example1() {
+        assert_eq!(part1_with_start_tile(input(), Tile::SouthEast), 4)
     }
 
     #[test]
-    fn part2_example() {
-        assert_eq!(part2_with_start_tile(input3(), Tile::SouthEast), 4);
+    fn part1_example2() {
+        assert_eq!(part1_with_start_tile(input2(), Tile::SouthEast), 8)
+    }
+
+    #[test]
+    fn part2_example1() {
+        assert_eq!(part2_with_start_tile(input3(), Tile::SouthEast), 4)
+    }
+
+    #[test]
+    fn part2_example2() {
         assert_eq!(part2_with_start_tile(input4(), Tile::SouthEast), 8);
+    }
+
+    #[test]
+    fn part2_example3() {
         assert_eq!(part2_with_start_tile(input5(), Tile::SouthWest), 10);
     }
 }
