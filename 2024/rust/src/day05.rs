@@ -14,6 +14,48 @@ pub fn part1(input: &str) -> usize {
 }
 
 #[must_use]
+pub fn part2_new(input: &str) -> usize {
+    let (must_precede, cant_succeed, updates) = parse(input);
+    //    for (key, values) in &must_precede {
+    //        dbg!((key, values.len()));
+    //    }
+    //    let mut keys: Vec<usize> = must_precede.keys().copied().collect();
+    //    keys.sort();
+    //    dbg!(&keys);
+    //    dbg!(&keys.len());
+
+    let ordering = order(&must_precede, &cant_succeed);
+
+    updates
+        .into_iter()
+        .filter(|update| !is_valid(update, &cant_succeed))
+        .map(|update| {
+            let corrected_update = correct_with_ordering(&update, &ordering);
+            if !is_valid(&corrected_update, &cant_succeed) {
+                dbg!(&must_precede);
+                dbg!(&corrected_update);
+                dbg!(&ordering);
+                panic!("omg");
+            }
+            corrected_update[corrected_update.len() / 2]
+        })
+        .sum()
+}
+
+fn correct_with_ordering(
+    update: &Vec<usize>,
+    ordering: &Vec<usize>,
+) -> Vec<usize> {
+    let mut corrected = update.clone();
+    corrected.sort_by(|a, b| index(a, ordering).cmp(&index(b, ordering)));
+
+    corrected
+}
+
+fn index(value: &usize, ordering: &Vec<usize>) -> Option<usize> {
+    ordering.iter().position(|v| v == value)
+}
+
 pub fn part2(input: &str) -> usize {
     let (must_precede, cant_succeed, updates) = parse(input);
 
@@ -26,6 +68,39 @@ pub fn part2(input: &str) -> usize {
             corrected_update[corrected_update.len() / 2]
         })
         .sum()
+}
+
+fn order(must_precede: &Rules, cant_succeed: &Rules) -> Vec<usize> {
+    let root = must_precede
+        .keys()
+        .find(|key| must_precede.values().all(|values| !values.contains(key)))
+        .unwrap();
+
+    dbg!(&root);
+
+    let mut map = cant_succeed.clone();
+    let mut ordering = vec![];
+    let mut nexts = vec![*root];
+    let mut new_nexts: Vec<usize> = vec![];
+
+    while !nexts.is_empty() {
+        for current in nexts.clone() {
+            for (key, values) in map.iter_mut() {
+                values.retain_mut(|v| *v != current);
+                if values.is_empty() {
+                    new_nexts.push(key.clone());
+                }
+            }
+
+            map.retain(|_key, values| !values.is_empty());
+            ordering.push(current);
+        }
+
+        nexts = new_nexts.clone();
+        new_nexts.clear();
+    }
+
+    ordering
 }
 
 fn correct(
@@ -164,5 +239,33 @@ mod tests {
             vec![97, 75, 47, 29, 13]
         );
         assert_eq!(part2(input()), 123)
+    }
+
+    #[test]
+    fn order_example() {
+        let (must_precede, cant_succeed, _updates) = parse(input());
+        assert_eq!(
+            order(&must_precede, &cant_succeed),
+            vec![97, 75, 47, 61, 53, 29, 13]
+        );
+    }
+
+    #[test]
+    fn correct_with_ordering_example() {
+        let (must_precede, cant_succeed, _updates) = parse(input());
+        let ordering = order(&must_precede, &cant_succeed);
+
+        let test_cases: Vec<Vec<usize>> = vec![
+            vec![75, 97, 11, 47, 61, 53],
+            vec![61, 13, 29],
+            vec![97, 13, 75, 29, 47],
+        ];
+
+        for test_case in test_cases {
+            assert_eq!(
+                correct_with_ordering(&test_case, &ordering),
+                correct(&test_case, &must_precede, &cant_succeed)
+            );
+        }
     }
 }
