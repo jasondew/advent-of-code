@@ -8,17 +8,13 @@ type PositionMap = HashMap<Position, Plant>;
 #[must_use]
 pub fn part1(input: &str) -> usize {
     let (plot_map, position_map) = parse(input);
-    let contiguous_plots: Vec<(char, Vec<Position>)> = separate(&plot_map);
-
-    //    dbg!(&contiguous_plots);
+    let contiguous_plots: Vec<(char, Vec<Position>)> = segment(&plot_map);
 
     contiguous_plots
         .into_iter()
         .map(|(plant, plant_positions)| {
             let perimeter = perimeter(&plant, &plant_positions, &position_map);
             let area = plant_positions.len();
-
-            dbg!(&plant, perimeter, area);
 
             perimeter * area
         })
@@ -27,88 +23,82 @@ pub fn part1(input: &str) -> usize {
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    input.lines().count()
+    let (plot_map, position_map) = parse(input);
+    let contiguous_plots: Vec<(char, Vec<Position>)> = segment(&plot_map);
+
+    contiguous_plots
+        .into_iter()
+        .map(|(plant, plant_positions)| {
+            let sides = sides(&plant, &plant_positions, &position_map);
+            let area = plant_positions.len();
+
+            sides * area
+        })
+        .sum()
 }
 
-fn separate(plot_map: &PlotMap) -> Vec<(char, Vec<Position>)> {
-    let mut contiguous_plots = Vec::new();
+fn sides(
+    plant: &Plant,
+    plant_positions: &Vec<Position>,
+    position_map: &PositionMap,
+) -> usize {
+    let mut sides: usize = 0;
 
-    for (plant, positions) in plot_map {
-        let mut plots: Vec<Vec<Position>> = Vec::new();
+    for position in plant_positions {
+        sides += neighboring_plants(position, position_map)
+            .into_iter()
+            .filter(|neighbor_plant| *neighbor_plant != Some(*plant))
+            .count();
+    }
 
-        for position in positions {
-            match plots.iter_mut().find(|plot_positions| {
-                plot_positions.iter().any(|plot_position| {
-                    is_neighboring(plot_position, position)
-                })
-            }) {
-                Some(plot) => {
-                    plot.push(*position);
-                }
-                None => {
-                    plots.push(vec![*position]);
-                }
-            }
-            if *plant == 'I' {
-                dbg!(plant, position, &plots);
-            }
-        }
+    sides
+}
 
-        if *plant == 'I' {
-            dbg!(&plots);
-        }
+fn segment(plot_map: &PlotMap) -> Vec<(char, Vec<Position>)> {
+    let mut segmented_plots = Vec::new();
 
-        let mut combined_plots: Vec<Vec<Position>> = Vec::new();
-        let mut skip_next = false;
-        let mut merging: bool = true;
-
-        while merging {
-            merging = false;
-            for a_index in 0..plots.len() {
-                if skip_next {
-                    skip_next = false
-                } else {
-                    let plot_a = plots.get(a_index).unwrap();
-                    if a_index == plots.len() - 1 {
-                        combined_plots.push(plot_a.clone());
-                    } else {
-                        for b_index in a_index + 1..plots.len() {
-                            let plot_b = plots.get(b_index).unwrap();
-
-                            if plot_a.iter().any(|a_position| {
-                                plot_b.iter().any(|b_position| {
-                                    is_neighboring(a_position, b_position)
-                                })
-                            }) {
-                                let mut combined_plot = plot_a.clone();
-                                combined_plot.append(&mut plot_b.clone());
-                                combined_plots.push(combined_plot);
-                                merging = true;
-                                skip_next = true;
-
-                                break;
-                            }
-                        }
-                        if !skip_next {
-                            combined_plots.push(plot_a.clone());
-                        }
-                    }
-                }
-            }
-            plots = combined_plots;
-            combined_plots = Vec::new();
-        }
-
-        if *plant == 'I' {
-            dbg!(&plots);
-        }
-
-        for plot in plots {
-            contiguous_plots.push((*plant, plot))
+    for (plant, plot_positions) in plot_map {
+        for segmented_positions in
+            segment_plot(plot_positions.clone(), Vec::new())
+        {
+            segmented_plots.push((*plant, segmented_positions));
         }
     }
 
-    contiguous_plots
+    segmented_plots
+}
+
+fn segment_plot(
+    mut positions: Vec<Position>,
+    mut plots: Vec<Vec<Position>>,
+) -> Vec<Vec<Position>> {
+    if positions.is_empty() {
+        plots
+    } else {
+        let mut plot: Vec<Position> = Vec::new();
+        let mut frontier: Vec<Position> = vec![positions.pop().unwrap()];
+        let mut next_frontier: Vec<Position>;
+
+        while !&frontier.is_empty() {
+            next_frontier = Vec::new();
+            for position in &frontier {
+                plot.push(*position);
+                positions.retain(|other_position| {
+                    if is_neighboring(&position, other_position) {
+                        next_frontier.push(*other_position);
+                        false
+                    } else {
+                        true
+                    }
+                })
+            }
+
+            frontier = next_frontier;
+        }
+        plots.push(plot);
+
+        segment_plot(positions, plots)
+    }
 }
 
 fn is_neighboring(a: &Position, b: &Position) -> bool {
@@ -207,6 +197,25 @@ MIIISIJEEE
 MMMISSJEEE"
     }
 
+    fn e_input() -> &'static str {
+        "\
+EEEEE
+EXXXX
+EEEEE
+EXXXX
+EEEEE"
+    }
+
+    fn mobius_input() -> &'static str {
+        "\
+AAAAAA
+AAABBA
+AAABBA
+ABBAAA
+ABBAAA
+AAAAAA"
+    }
+
     #[test]
     fn is_neighboring_test() {
         assert!(is_neighboring(&(0, 0), &(0, 1)));
@@ -216,13 +225,17 @@ MMMISSJEEE"
 
     #[test]
     fn part1_example() {
-        //        assert_eq!(part1(small_input()), 140);
-        //        assert_eq!(part1(enclosed_input()), 772);
+        assert_eq!(part1(small_input()), 140);
+        assert_eq!(part1(enclosed_input()), 772);
         assert_eq!(part1(large_input()), 1930);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(large_input()), 10);
+        assert_eq!(part2(small_input()), 80);
+        assert_eq!(part2(enclosed_input()), 436);
+        assert_eq!(part2(e_input()), 236);
+        assert_eq!(part2(mobius_input()), 368);
+        assert_eq!(part2(large_input()), 1206);
     }
 }
