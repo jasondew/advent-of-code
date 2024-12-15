@@ -33,10 +33,11 @@ day!(day10, "10");
 day!(day11, "11");
 day!(day13, "13");
 day!(day14, "14");
+day!(day15, "15");
 
 criterion_group! {
     name = benches;
     config = Criterion::default().significance_level(0.1).sample_size(25);
-    targets = day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day13, day14
+    targets = day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day13, day14, day15
 }
 criterion_main!(benches);
