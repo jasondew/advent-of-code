@@ -32,6 +32,8 @@ pub fn part2(input: &str) -> usize {
             let sides = sides(&plant, &plant_positions, &position_map);
             let area = plant_positions.len();
 
+            //            println!("plant {}: sides={} area={}", plant, sides, area);
+
             sides * area
         })
         .sum()
@@ -42,16 +44,70 @@ fn sides(
     plant_positions: &Vec<Position>,
     position_map: &PositionMap,
 ) -> usize {
-    let mut sides: usize = 0;
+    let mut corners: usize = 0;
 
-    for position in plant_positions {
-        sides += neighboring_plants(position, position_map)
-            .into_iter()
-            .filter(|neighbor_plant| *neighbor_plant != Some(*plant))
-            .count();
+    for (row, col) in plant_positions.clone() {
+        let nw = row.checked_sub(1).and_then(|r| {
+            col.checked_sub(1).and_then(|c| position_map.get(&(r, c)))
+        });
+        let n = row
+            .checked_sub(1)
+            .map(|r| (r, col))
+            .and_then(|p| position_map.get(&p));
+        let ne = row
+            .checked_sub(1)
+            .map(|r| (r, col + 1))
+            .and_then(|p| position_map.get(&p));
+        let w = col
+            .checked_sub(1)
+            .map(|c| (row, c))
+            .and_then(|p| position_map.get(&p));
+
+        let e = position_map.get(&(row, col + 1));
+        let sw = col
+            .checked_sub(1)
+            .map(|c| (row + 1, c))
+            .and_then(|p| position_map.get(&p));
+        let s = position_map.get(&(row + 1, col));
+        let se = position_map.get(&(row + 1, col + 1));
+
+        // NW  N  NE
+        //  W  X  E
+        // SW  S  SE
+
+        if is_corner(plant, nw, n, w) {
+            corners += 1;
+        }
+
+        if is_corner(plant, ne, n, e) {
+            corners += 1;
+        }
+
+        if is_corner(plant, sw, s, w) {
+            corners += 1;
+        }
+
+        if is_corner(plant, se, s, e) {
+            corners += 1;
+        }
     }
 
-    sides
+    corners
+}
+
+fn is_corner(
+    target: &char,
+    corner: Option<&char>,
+    side_a: Option<&char>,
+    side_b: Option<&char>,
+) -> bool {
+    let x = Some(target);
+
+    if corner == x {
+        side_a != x && side_b != x
+    } else {
+        (side_a == x && side_b == x) || (side_a != x && side_b != x)
+    }
 }
 
 fn segment(plot_map: &PlotMap) -> Vec<(char, Vec<Position>)> {
