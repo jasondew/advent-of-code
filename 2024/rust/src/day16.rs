@@ -1,6 +1,10 @@
-use std::collections::HashMap;
+use priority_queue::PriorityQueue;
+use std::{
+    cmp::{Ordering, Reverse},
+    collections::HashMap,
+};
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 struct Position {
     row: usize,
     col: usize,
@@ -35,25 +39,14 @@ impl std::fmt::Display for Direction {
     }
 }
 
-type Path = (Vec<Position>, Vec<Direction>);
+type Path = Vec<Position>;
+type Map = HashMap<Position, Tile>;
 
 #[must_use]
 pub fn part1(input: &str) -> usize {
-    let (map, start_position, end_position) = parse(input);
-    let mut best_path: Path = (Vec::new(), Vec::new());
-    let mut best_cost: usize = usize::max_value();
+    let (map, start_position, target_position) = parse(input);
 
-    for path in all_paths(start_position, end_position, map) {
-        let cost = path_cost(&path);
-        if cost < best_cost {
-            best_cost = cost;
-            best_path = path;
-        }
-    }
-
-    dbg!(&best_path);
-
-    best_cost
+    best_path(&start_position, &target_position, &map)
 }
 
 #[must_use]
@@ -61,16 +54,80 @@ pub fn part2(input: &str) -> usize {
     input.lines().count()
 }
 
-fn path_cost((positions, directions): &Path) -> usize {
-    let mut cost: usize = positions.len() - 1;
-    let mut current_direction = &Direction::Right;
+fn best_path(
+    start_position: &Position,
+    target_position: &Position,
+    map: &Map,
+) -> usize {
+    let mut frontier: PriorityQueue<Position, Reverse<usize>> =
+        PriorityQueue::new();
+    let mut came_from: HashMap<Position, Position> = HashMap::new();
+    let mut cost_so_far: HashMap<Position, (Direction, usize)> = HashMap::new();
 
-    for direction in directions {
-        cost += rotation_cost(current_direction, direction);
-        current_direction = direction;
+    frontier.push(start_position.clone(), Reverse(0));
+    cost_so_far.insert(start_position.clone(), (Direction::Right, 0));
+
+    while !frontier.is_empty() {
+        let (current, _priority) = frontier.pop().unwrap();
+
+        if current == *target_position {
+            break;
+        }
+
+        for next in neighbors(&current, map) {
+            let (current_direction, cost) = cost_so_far.get(&current).unwrap();
+            let next_direction = direction(&current, &next);
+            let new_cost =
+                cost + rotation_cost(&current_direction, &next_direction) + 1;
+
+            //            println!(
+            //                "{:?} -> {:?}, {:?} -> {:?}, {}",
+            //                &current, &next, &current_direction, &next_direction, new_cost
+            //            );
+
+            let maybe_cost = cost_so_far.get(&next);
+            if maybe_cost.is_none()
+                || maybe_cost.map_or(false, |(_, cost)| new_cost < *cost)
+            {
+                cost_so_far.insert(next.clone(), (next_direction, new_cost));
+                frontier.push(next.clone(), Reverse(new_cost));
+                came_from.insert(next.clone(), current.clone());
+            }
+        }
     }
 
-    cost
+    dbg!(&came_from);
+    dbg!(&cost_so_far);
+
+    let (_, cost) = cost_so_far.get(&target_position).unwrap();
+    *cost
+}
+
+fn neighbors(position: &Position, map: &Map) -> Vec<Position> {
+    vec![
+        position.row.checked_sub(1).map(|r| (r, position.col)),
+        position.col.checked_sub(1).map(|c| (position.row, c)),
+        Some((position.row + 1, position.col)),
+        Some((position.row, position.col + 1)),
+    ]
+    .into_iter()
+    .filter_map(|maybe_position| {
+        maybe_position.map(|(row, col)| Position { row, col })
+    })
+    .filter(|position| !map.contains_key(&position))
+    .collect()
+}
+
+fn direction(from: &Position, to: &Position) -> Direction {
+    match from.row.cmp(&to.row) {
+        Ordering::Less => Direction::Down,
+        Ordering::Equal => match from.col.cmp(&to.col) {
+            Ordering::Less => Direction::Right,
+            Ordering::Equal => panic!("stationary point found: {:?}", from),
+            Ordering::Greater => Direction::Left,
+        },
+        Ordering::Greater => Direction::Up,
+    }
 }
 
 fn rotation_cost(from: &Direction, to: &Direction) -> usize {
@@ -102,14 +159,6 @@ fn rotation_cost(from: &Direction, to: &Direction) -> usize {
     }
 }
 
-fn all_paths(
-    start_position: Position,
-    end_position: Position,
-    map: HashMap<Position, Tile>,
-) -> Vec<Path> {
-    Vec::new()
-}
-
 fn parse(input: &str) -> (HashMap<Position, Tile>, Position, Position) {
     let mut map = HashMap::new();
     let mut start_position: Option<Position> = None;
@@ -139,6 +188,25 @@ fn parse(input: &str) -> (HashMap<Position, Tile>, Position, Position) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn tiny_input() -> &'static str {
+        "\
+######
+#...##
+#.#.E#
+#S..##
+######"
+    }
+
+    #[allow(dead_code)]
+    fn small_input() -> &'static str {
+        "\
+#########
+#......E#
+#..#..#.#
+#S..#...#
+#########"
+    }
 
     fn example_input() -> &'static str {
         "\
@@ -182,12 +250,14 @@ mod tests {
 
     #[test]
     fn part1_example() {
+        assert_eq!(part1(tiny_input()), 2004);
         assert_eq!(part1(example_input()), 7036);
         assert_eq!(part1(second_example_input()), 11048);
     }
 
     #[test]
     fn part2_example() {
-        assert_eq!(part2(example_input()), 15);
+        assert_eq!(part2(example_input()), 45);
+        assert_eq!(part2(second_example_input()), 64);
     }
 }
