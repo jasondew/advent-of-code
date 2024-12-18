@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 regex = "1"
+priority-queue = "2.1.1"
 
 [dev-dependencies]
 criterion = "0.5.1"
