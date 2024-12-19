@@ -1,7 +1,7 @@
 use priority_queue::PriorityQueue;
 use std::{
     cmp::{Ordering, Reverse},
-    collections::HashMap,
+    collections::{HashMap, HashSet, VecDeque},
 };
 
 #[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -21,7 +21,7 @@ enum Tile {
     Wall,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 enum Direction {
     Up,
     Down,
@@ -46,15 +46,77 @@ type Map = HashMap<Position, Tile>;
 pub fn part1(input: &str) -> usize {
     let (map, start_position, target_position) = parse(input);
 
-    best_path(&start_position, &target_position, &map)
+    best_path_cost(&start_position, &target_position, &map)
 }
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    input.lines().count()
+    let (map, start_position, target_position) = parse(input);
+    let best_cost = best_path_cost(&start_position, &target_position, &map);
+
+    let best_positions: HashSet<Position> =
+        best_paths(&start_position, &target_position, &map, best_cost)
+            .into_iter()
+            .flat_map(|path| path.into_iter())
+            .collect();
+
+    best_positions.len()
 }
 
-fn best_path(
+fn best_paths(
+    start_position: &Position,
+    target_position: &Position,
+    map: &Map,
+    best_cost: usize,
+) -> Vec<Path> {
+    let mut paths = Vec::new();
+    let mut queue = VecDeque::new();
+    let mut visited = HashMap::new();
+
+    queue.push_back((vec![start_position.clone()], Direction::Right, 0));
+    visited.insert((start_position.clone(), Direction::Right), 0);
+
+    while let Some((current_path, current_direction, current_cost)) =
+        queue.pop_front()
+    {
+        let current_position = current_path.last().unwrap();
+
+        if current_position == target_position {
+            paths.push(current_path);
+            continue;
+        }
+
+        for next in neighbors(current_position, map) {
+            let next_direction = direction(current_position, &next);
+            let new_cost = current_cost
+                + rotation_cost(&current_direction, &next_direction)
+                + 1;
+
+            // Skip paths that exceed the best cost
+            if new_cost > best_cost {
+                continue;
+            }
+
+            let state = (next.clone(), next_direction.clone());
+            if let Some(&prev_cost) = visited.get(&state) {
+                if new_cost > prev_cost {
+                    continue;
+                }
+            }
+
+            visited.insert(state, new_cost);
+
+            let mut new_path = current_path.clone();
+            new_path.push(next.clone());
+
+            queue.push_back((new_path, next_direction, new_cost));
+        }
+    }
+
+    paths
+}
+
+fn best_path_cost(
     start_position: &Position,
     target_position: &Position,
     map: &Map,
@@ -95,9 +157,6 @@ fn best_path(
             }
         }
     }
-
-    dbg!(&came_from);
-    dbg!(&cost_so_far);
 
     let (_, cost) = cost_so_far.get(&target_position).unwrap();
     *cost
