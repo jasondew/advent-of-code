@@ -49,6 +49,7 @@ pub fn part1(input: &str) -> usize {
     part1_with_params(input, 101, 103, 100)
 }
 
+#[must_use]
 pub fn part1_with_params(
     input: &str,
     width: usize,
@@ -98,14 +99,15 @@ pub fn part2(input: &str) -> usize {
     part2_with_params(input, 101, 103)
 }
 
+#[must_use]
 pub fn part2_with_params(input: &str, width: usize, height: usize) -> usize {
     let mut robots = parse(input);
     let mut answer: usize = 0;
 
     //    print_map(&robots, width, height, 0);
 
-    for step in 1..=100000 {
-        for robot in robots.iter_mut() {
+    for step in 1..=100_000 {
+        for robot in &mut robots {
             robot.step(width, height);
         }
 
@@ -166,7 +168,7 @@ fn print_map(robots: &Vec<Robot>, width: usize, height: usize, steps: usize) {
         for x in 0..width {
             let count = robots
                 .iter()
-                .filter(|robot| robot.position == Position { x: x, y: y })
+                .filter(|robot| robot.position == Position { x, y })
                 .count();
             if count > 0 {
                 print!("{}", count)

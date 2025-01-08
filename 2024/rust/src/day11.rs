@@ -28,23 +28,19 @@ fn blink(
 ) -> usize {
     if let Some(count) = cache.get(&(stone, blinks_left)) {
         *count
+    } else if blinks_left == 0 {
+        1
     } else {
-        if blinks_left == 0 {
-            1
+        let count = if stone == 0 {
+            blink(1, blinks_left - 1, cache)
+        } else if let Some((left, right)) = split(stone) {
+            blink(left, blinks_left - 1, cache)
+                + blink(right, blinks_left - 1, cache)
         } else {
-            let count = if stone == 0 {
-                blink(1, blinks_left - 1, cache)
-            } else {
-                if let Some((left, right)) = split(stone) {
-                    blink(left, blinks_left - 1, cache)
-                        + blink(right, blinks_left - 1, cache)
-                } else {
-                    blink(stone * 2024, blinks_left - 1, cache)
-                }
-            };
-            cache.insert((stone, blinks_left), count);
-            count
-        }
+            blink(stone * 2024, blinks_left - 1, cache)
+        };
+        cache.insert((stone, blinks_left), count);
+        count
     }
 }
 
@@ -86,7 +82,7 @@ fn split(stone: usize) -> Option<(usize, usize)> {
 fn parse(input: &str) -> Vec<usize> {
     input
         .trim()
-        .split(" ")
+        .split(' ')
         .map(|s| s.parse::<usize>().unwrap())
         .collect()
 }

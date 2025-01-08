@@ -12,7 +12,7 @@ pub fn part1(input: &str) -> usize {
 
     for (frequency, positions) in antennas {
         for (a, b) in position_pairs(&positions) {
-            for antinode_position in antinode_positions(&a, &b, &bounds) {
+            for antinode_position in antinode_positions(a, b, &bounds) {
                 antinodes.insert(antinode_position, frequency);
             }
         }
@@ -28,8 +28,7 @@ pub fn part2(input: &str) -> usize {
 
     for (frequency, positions) in antennas {
         for (a, b) in position_pairs(&positions) {
-            for antinode_position in
-                repeating_antinode_positions(&a, &b, &bounds)
+            for antinode_position in repeating_antinode_positions(a, b, &bounds)
             {
                 antinodes.insert(antinode_position, frequency);
             }
@@ -39,7 +38,7 @@ pub fn part2(input: &str) -> usize {
     antinodes.len()
 }
 
-fn position_pairs(positions: &Vec<Position>) -> Vec<(&Position, &Position)> {
+fn position_pairs(positions: &[Position]) -> Vec<(&Position, &Position)> {
     let mut pairs: Vec<(&Position, &Position)> = Vec::new();
 
     for (index, start_position) in positions.iter().enumerate() {
@@ -95,10 +94,7 @@ fn repeating_antinode_positions(
     candidate = (b.0 as isize + delta_y, b.1 as isize + delta_x);
     while let Some(position) = suitable_candidate(candidate, bounds) {
         antinodes.push(position);
-        candidate = (
-            candidate.0 as isize + delta_y,
-            candidate.1 as isize + delta_x,
-        );
+        candidate = (candidate.0 + delta_y, candidate.1 + delta_x);
     }
 
     antinodes.push(*a);
@@ -141,7 +137,7 @@ fn parse(input: &str) -> (Bounds, Map, Antennas) {
                 '.' => {}
                 ch => {
                     map.insert((row, col), ch);
-                    antennas.entry(char).or_insert(vec![]).push((row, col));
+                    antennas.entry(char).or_default().push((row, col));
                 }
             }
         }

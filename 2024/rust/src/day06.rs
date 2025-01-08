@@ -21,14 +21,14 @@ pub fn part1(input: &str) -> usize {
         //        print_map(&bounds, &obstacles, &positions);
         positions.len()
     } else {
-        panic!("loop found")
+        0
     }
 }
 
 fn walk(
     bounds: &(Range<usize>, Range<usize>),
     starting_position: Position,
-    obstacles: &Vec<Position>,
+    obstacles: &[Position],
 ) -> Option<HashSet<Position>> {
     let mut position = starting_position;
     let mut next_position;
@@ -54,28 +54,26 @@ fn walk(
         }
     }
 
-    return Some(positions);
+    Some(positions)
 }
 
 #[allow(dead_code)]
 fn print_map(
     bounds: &(Range<usize>, Range<usize>),
-    obstacles: &Vec<Position>,
+    obstacles: &[Position],
     positions: &HashSet<Position>,
 ) {
     for row in bounds.0.start..bounds.0.end {
         for col in bounds.1.start..bounds.1.end {
             if obstacles.contains(&(row, col)) {
                 print!("#");
+            } else if positions.contains(&(row, col)) {
+                print!("X");
             } else {
-                if positions.contains(&(row, col)) {
-                    print!("X")
-                } else {
-                    print!(".")
-                }
+                print!(".");
             }
         }
-        println!()
+        println!();
     }
 }
 

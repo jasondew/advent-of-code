@@ -23,11 +23,11 @@ fn evaluate(operations: Vec<Operation>) -> usize {
     let mut enabled: bool = true;
     let mut total: usize = 0;
 
-    for operation in operations.into_iter() {
+    for operation in operations {
         match operation {
             Operation::Multiply(first, second) => {
                 if enabled {
-                    total += first * second
+                    total += first * second;
                 }
             }
             Operation::Enable => enabled = true,

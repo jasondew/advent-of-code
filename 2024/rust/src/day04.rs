@@ -6,39 +6,17 @@ pub fn part1(input: &str) -> usize {
 
     for row in 0..chars.len() {
         for col in 0..chars[0].len() {
-            if chars[row][col] == 'X' {
-                if right_xmas(&chars, row, col) {
-                    //                    dbg!(("right", row, col));
-                    count += 1
-                };
-                if left_xmas(&chars, row, col) {
-                    //                    dbg!(("left", row, col));
-                    count += 1
-                };
-                if up_xmas(&chars, row, col) {
-                    //                    dbg!(("up", row, col));
-                    count += 1
-                };
-                if down_xmas(&chars, row, col) {
-                    //                    dbg!(("down", row, col));
-                    count += 1
-                };
-                if up_left_xmas(&chars, row, col) {
-                    //                    dbg!(("up left", row, col));
-                    count += 1
-                };
-                if up_right_xmas(&chars, row, col) {
-                    //                    dbg!(("up right", row, col));
-                    count += 1
-                };
-                if down_left_xmas(&chars, row, col) {
-                    //                    dbg!(("down left", row, col));
-                    count += 1
-                };
-                if down_right_xmas(&chars, row, col) {
-                    //                    dbg!(("down right", row, col));
-                    count += 1
-                };
+            if chars[row][col] == 'X'
+                && (right_xmas(&chars, row, col)
+                    || left_xmas(&chars, row, col)
+                    || up_xmas(&chars, row, col)
+                    || down_xmas(&chars, row, col)
+                    || up_left_xmas(&chars, row, col)
+                    || up_right_xmas(&chars, row, col)
+                    || down_left_xmas(&chars, row, col)
+                    || down_right_xmas(&chars, row, col))
+            {
+                count += 1;
             }
         }
     }
@@ -64,7 +42,7 @@ pub fn part2(input: &str) -> usize {
     count
 }
 
-fn x_mas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn x_mas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     row >= 1
         && row + 1 < chars.len()
         && col >= 1
@@ -77,35 +55,35 @@ fn x_mas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
                 && chars[row + 1][col - 1] == 'M'))
 }
 
-fn right_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn right_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     col + 3 < chars[row].len()
         && chars[row][col + 1] == 'M'
         && chars[row][col + 2] == 'A'
         && chars[row][col + 3] == 'S'
 }
 
-fn left_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn left_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     col >= 3
         && chars[row][col - 1] == 'M'
         && chars[row][col - 2] == 'A'
         && chars[row][col - 3] == 'S'
 }
 
-fn up_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn up_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     row >= 3
         && chars[row - 1][col] == 'M'
         && chars[row - 2][col] == 'A'
         && chars[row - 3][col] == 'S'
 }
 
-fn down_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn down_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     row + 3 < chars.len()
         && chars[row + 1][col] == 'M'
         && chars[row + 2][col] == 'A'
         && chars[row + 3][col] == 'S'
 }
 
-fn down_left_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn down_left_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     col >= 3
         && row + 3 < chars.len()
         && chars[row + 1][col - 1] == 'M'
@@ -113,7 +91,7 @@ fn down_left_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
         && chars[row + 3][col - 3] == 'S'
 }
 
-fn down_right_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn down_right_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     col + 3 < chars[row].len()
         && row + 3 < chars.len()
         && chars[row + 1][col + 1] == 'M'
@@ -121,7 +99,7 @@ fn down_right_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
         && chars[row + 3][col + 3] == 'S'
 }
 
-fn up_left_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn up_left_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     row >= 3
         && col >= 3
         && chars[row - 1][col - 1] == 'M'
@@ -129,7 +107,7 @@ fn up_left_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
         && chars[row - 3][col - 3] == 'S'
 }
 
-fn up_right_xmas(chars: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn up_right_xmas(chars: &[Vec<char>], row: usize, col: usize) -> bool {
     row >= 3
         && col + 3 < chars[row].len()
         && chars[row - 1][col + 1] == 'M'

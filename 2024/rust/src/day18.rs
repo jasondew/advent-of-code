@@ -194,16 +194,14 @@ fn print(map: &Map, path: &Path, bounds: usize, time: usize) {
         for x in 0..=bounds {
             if path.contains(&Position { x, y }) {
                 print!(" () ")
-            } else {
-                if let Some(fall_time) = map.get(&Position { x, y }) {
-                    if time < *fall_time {
-                        print!(" .. ")
-                    } else {
-                        print!("{:03} ", fall_time)
-                    }
-                } else {
+            } else if let Some(fall_time) = map.get(&Position { x, y }) {
+                if time < *fall_time {
                     print!(" .. ")
+                } else {
+                    print!("{:03} ", fall_time)
                 }
+            } else {
+                print!(" .. ")
             }
         }
         println!();

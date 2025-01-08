@@ -47,9 +47,9 @@ fn create(
             ) {
                 answer.push_front(pattern.clone());
                 return Some(answer);
-            } else {
-                cache.insert(design.clone(), false);
             }
+
+            cache.insert(design.clone(), false);
         }
     }
 

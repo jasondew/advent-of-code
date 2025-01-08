@@ -8,7 +8,7 @@ pub fn part1(input: &str) -> usize {
     for (computer, connected_computers) in &connections {
         for (a, b) in connected_pairs(connected_computers, &connections) {
             let mut group = vec![computer, a, b];
-            group.sort();
+            group.sort_unstable();
             groups.insert(group);
         }
     }
@@ -55,7 +55,7 @@ pub fn part2(input: &str) -> String {
     for (computer, connected_computers) in &connections {
         for (a, b) in connected_pairs(connected_computers, &connections) {
             let mut group = vec![computer, a, b];
-            group.sort();
+            group.sort_unstable();
             groups.insert(group);
         }
     }
@@ -75,12 +75,12 @@ pub fn part2(input: &str) -> String {
 
     let mut largest_set: Vec<&str> = sets
         .into_iter()
-        .max_by_key(|set| set.len())
+        .max_by_key(HashSet::len)
         .unwrap()
         .into_iter()
         .collect();
 
-    largest_set.sort();
+    largest_set.sort_unstable();
 
     largest_set.into_iter().collect::<Vec<&str>>().join(",")
 }
@@ -91,8 +91,8 @@ fn parse(input: &str) -> HashMap<&str, HashSet<&str>> {
     for line in input.lines() {
         let (left, right) = line.split_once('-').unwrap();
 
-        map.entry(left).or_insert(HashSet::new()).insert(right);
-        map.entry(right).or_insert(HashSet::new()).insert(left);
+        map.entry(left).or_default().insert(right);
+        map.entry(right).or_default().insert(left);
     }
 
     map

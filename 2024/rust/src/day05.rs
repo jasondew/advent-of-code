@@ -32,30 +32,25 @@ pub fn part2_new(input: &str) -> usize {
         .map(|update| {
             let corrected_update = correct_with_ordering(&update, &ordering);
             if !is_valid(&corrected_update, &cant_succeed) {
-                dbg!(&must_precede);
-                dbg!(&corrected_update);
-                dbg!(&ordering);
-                panic!("omg");
+                return 0;
             }
             corrected_update[corrected_update.len() / 2]
         })
         .sum()
 }
 
-fn correct_with_ordering(
-    update: &Vec<usize>,
-    ordering: &Vec<usize>,
-) -> Vec<usize> {
-    let mut corrected = update.clone();
-    corrected.sort_by(|a, b| index(a, ordering).cmp(&index(b, ordering)));
+fn correct_with_ordering(update: &[usize], ordering: &[usize]) -> Vec<usize> {
+    let mut corrected: Vec<usize> = update.to_vec();
+    corrected.sort_by_key(|a| index(*a, ordering));
 
     corrected
 }
 
-fn index(value: &usize, ordering: &Vec<usize>) -> Option<usize> {
-    ordering.iter().position(|v| v == value)
+fn index(value: usize, ordering: &[usize]) -> Option<usize> {
+    ordering.iter().position(|v| *v == value)
 }
 
+#[must_use]
 pub fn part2(input: &str) -> usize {
     let (must_precede, cant_succeed, updates) = parse(input);
 
@@ -85,10 +80,10 @@ fn order(must_precede: &Rules, cant_succeed: &Rules) -> Vec<usize> {
 
     while !nexts.is_empty() {
         for current in nexts.clone() {
-            for (key, values) in map.iter_mut() {
+            for (key, values) in &mut map {
                 values.retain_mut(|v| *v != current);
                 if values.is_empty() {
-                    new_nexts.push(key.clone());
+                    new_nexts.push(*key);
                 }
             }
 
@@ -96,7 +91,7 @@ fn order(must_precede: &Rules, cant_succeed: &Rules) -> Vec<usize> {
             ordering.push(current);
         }
 
-        nexts = new_nexts.clone();
+        nexts.clone_from(&new_nexts);
         new_nexts.clear();
     }
 
@@ -115,9 +110,8 @@ fn correct(
             corrected.insert(index, *page);
             if is_valid(&corrected, cant_succeed) {
                 break;
-            } else {
-                corrected.remove(index);
             }
+            corrected.remove(index);
         }
     }
 
@@ -128,11 +122,11 @@ fn is_valid(update: &Vec<usize>, rules: &Rules) -> bool {
     let mut verboten_pages: Vec<usize> = Vec::new();
 
     for page in update {
-        if verboten_pages.contains(&page) {
+        if verboten_pages.contains(page) {
             return false;
         }
-        if let Some(new_verboten_pages) = rules.get(&page) {
-            verboten_pages.append(&mut new_verboten_pages.clone())
+        if let Some(new_verboten_pages) = rules.get(page) {
+            verboten_pages.append(&mut new_verboten_pages.clone());
         }
     }
 
@@ -145,7 +139,7 @@ fn parse(input: &str) -> (Rules, Rules, Vec<Vec<usize>>) {
     let mut cant_succeed: Rules = HashMap::new();
 
     for line in rule_strings.lines() {
-        let (left_string, right_string) = line.split_once("|").unwrap();
+        let (left_string, right_string) = line.split_once('|').unwrap();
         let left = parse_usize(left_string);
         let right = parse_usize(right_string);
 
@@ -162,7 +156,7 @@ fn parse(input: &str) -> (Rules, Rules, Vec<Vec<usize>>) {
 
     let updates: Vec<Vec<usize>> = update_strings
         .lines()
-        .map(|line| line.split(",").map(|s| parse_usize(s)).collect())
+        .map(|line| line.split(',').map(parse_usize).collect())
         .collect();
 
     (must_precede, cant_succeed, updates)

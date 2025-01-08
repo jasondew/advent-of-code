@@ -21,16 +21,13 @@ pub fn part1(input: &str) -> usize {
 
     games
         .iter()
-        .map(|game| match minimum_tokens_to_win(&game) {
-            Some(tokens) => tokens,
-            None => 0,
-        })
+        .map(|game| minimum_tokens_to_win(game).unwrap_or(0))
         .sum()
 }
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
-    let games = parse(input, 10000000000000);
+    let games = parse(input, 10_000_000_000_000);
 
     games
         .iter()
@@ -57,10 +54,7 @@ fn minimum_tokens_to_win(game: &Game) -> Option<usize> {
     let b = (ay * px - ax * py) / (bx * ay - by * ax);
     let a = (px - b * bx) / ax;
 
-    let px_computed = a * ax + b * bx;
-    let py_computed = a * ay + b * by;
-
-    if (px as isize == px_computed) && (py as isize == py_computed) {
+    if (px as isize == a * ax + b * bx) && (py as isize == a * ay + b * by) {
         Some((3 * a + b) as usize)
     } else {
         None

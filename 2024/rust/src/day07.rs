@@ -7,7 +7,7 @@ pub fn part1(input: &str) -> usize {
         .filter(|(total, values)| {
             let (init, rest) = values.split_at(1);
 
-            is_possible(*total, init[0], &rest)
+            is_possible(*total, init[0], rest)
         })
         .map(|(total, _)| total)
         .sum()
@@ -36,7 +36,7 @@ pub fn part2(input: &str) -> usize {
         .filter(|(total, values)| {
             let (init, rest) = values.split_at(1);
 
-            is_possible_with_concatenation(*total, init[0], &rest)
+            is_possible_with_concatenation(*total, init[0], rest)
         })
         .map(|(total, _)| total)
         .sum()
@@ -80,10 +80,9 @@ fn parse(input: &str) -> Vec<(usize, Vec<usize>)> {
     input
         .lines()
         .map(|line| {
-            let (left, right) = line.split_once(":").unwrap();
+            let (left, right) = line.split_once(':').unwrap();
             let total = parse_usize(left);
-            let values =
-                right.trim().split(" ").map(|v| parse_usize(v)).collect();
+            let values = right.trim().split(" ").map(parse_usize).collect();
 
             (total, values)
         })

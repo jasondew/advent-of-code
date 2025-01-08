@@ -41,12 +41,12 @@ pub fn part2(input: &str) -> usize {
 
 fn sides(
     plant: &Plant,
-    plant_positions: &Vec<Position>,
+    plant_positions: &[Position],
     position_map: &PositionMap,
 ) -> usize {
     let mut corners: usize = 0;
 
-    for (row, col) in plant_positions.clone() {
+    for (row, col) in plant_positions.to_owned() {
         let nw = row.checked_sub(1).and_then(|r| {
             col.checked_sub(1).and_then(|c| position_map.get(&(r, c)))
         });
@@ -210,7 +210,7 @@ fn parse(input: &str) -> (PlotMap, PositionMap) {
 
     for (row, line) in input.lines().enumerate() {
         for (col, plant) in line.chars().enumerate() {
-            plots.entry(plant).or_insert(Vec::new()).push((row, col));
+            plots.entry(plant).or_default().push((row, col));
             positions.insert((row, col), plant);
         }
     }

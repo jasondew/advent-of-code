@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub fn part1(input: &str) -> usize {
     let pairs = input
         .lines()
-        .map(|line| parse_ints(line))
+        .map(parse_ints)
         .collect::<Vec<(usize, usize)>>();
     let (mut lefts, mut rights): (Vec<usize>, Vec<usize>) =
         pairs.into_iter().unzip();
@@ -12,7 +12,7 @@ pub fn part1(input: &str) -> usize {
     lefts.sort_unstable();
     rights.sort_unstable();
 
-    let sorted_pairs = lefts.into_iter().zip(rights.into_iter());
+    let sorted_pairs = lefts.into_iter().zip(rights);
 
     sorted_pairs.into_iter().map(|(a, b)| a.abs_diff(b)).sum()
 }
@@ -21,7 +21,7 @@ pub fn part1(input: &str) -> usize {
 pub fn part2(input: &str) -> usize {
     let pairs = input
         .lines()
-        .map(|line| parse_ints(line))
+        .map(parse_ints)
         .collect::<Vec<(usize, usize)>>();
     let (lefts, rights): (Vec<usize>, Vec<usize>) = pairs.into_iter().unzip();
 
@@ -40,7 +40,7 @@ pub fn part2(input: &str) -> usize {
 fn unique_values_with_counts(values: Vec<usize>) -> HashMap<usize, usize> {
     let mut map: HashMap<usize, usize> = HashMap::new();
 
-    for value in values.into_iter() {
+    for value in values {
         *map.entry(value).or_insert(0) += 1;
     }
 
@@ -49,16 +49,13 @@ fn unique_values_with_counts(values: Vec<usize>) -> HashMap<usize, usize> {
 
 fn parse_ints(line: &str) -> (usize, usize) {
     let ints = line
-        .splitn(2, " ")
-        .map(|part| match part.trim().parse::<usize>() {
-            Ok(value) => value,
-            Err(_error) => panic!("error parsing input: {}", line),
-        })
+        .splitn(2, ' ')
+        .map(|part| part.trim().parse::<usize>().unwrap())
         .collect::<Vec<usize>>();
 
     match ints.as_slice() {
         [a, b] => (*a, *b),
-        _ => panic!("invalid input: {}", line),
+        _ => panic!("invalid input: {line}"),
     }
 }
 

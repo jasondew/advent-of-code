@@ -2,7 +2,7 @@
 pub fn part1(input: &str) -> usize {
     let reports = parse(input);
 
-    reports.into_iter().filter(|report| is_safe(report)).count()
+    reports.into_iter().filter(is_safe).count()
 }
 
 #[must_use]
@@ -13,15 +13,13 @@ pub fn part2(input: &str) -> usize {
         .into_iter()
         .filter(|report| {
             is_safe(report)
-                || permutations_holding_one_out(report)
-                    .iter()
-                    .any(|r| is_safe(r))
+                || permutations_holding_one_out(report).iter().any(is_safe)
         })
         .count()
 }
 
-fn permutations_holding_one_out(report: &Vec<usize>) -> Vec<Vec<usize>> {
-    (1..report.len() + 1)
+fn permutations_holding_one_out(report: &[usize]) -> Vec<Vec<usize>> {
+    (1..=report.len())
         .map(|pivot| {
             let (left, right) = report.split_at(pivot);
             let left_drop_last = &left[..left.len() - 1];
@@ -30,25 +28,27 @@ fn permutations_holding_one_out(report: &Vec<usize>) -> Vec<Vec<usize>> {
         .collect()
 }
 
+#[allow(clippy::ptr_arg)]
 fn is_safe(report: &Vec<usize>) -> bool {
     let derivative: Vec<isize> = derivative(report);
     all_increasing_or_decreasing(&derivative) && within_range(&derivative)
 }
 
-fn all_increasing_or_decreasing(values: &Vec<isize>) -> bool {
+fn all_increasing_or_decreasing(values: &[isize]) -> bool {
     let min = *values.iter().min().unwrap();
     let max = *values.iter().max().unwrap();
 
     (min > 0isize && max > 0isize) || (min < 0isize && max < 0isize)
 }
 
-fn within_range(values: &Vec<isize>) -> bool {
+fn within_range(values: &[isize]) -> bool {
     values
         .iter()
         .all(|value| value.abs() >= 1 && value.abs() <= 3)
 }
 
-fn derivative(values: &Vec<usize>) -> Vec<isize> {
+#[allow(clippy::cast_possible_wrap)]
+fn derivative(values: &[usize]) -> Vec<isize> {
     values
         .windows(2)
         .map(|window| match window {
@@ -62,7 +62,7 @@ fn parse(input: &str) -> Vec<Vec<usize>> {
     input
         .lines()
         .map(|line| {
-            line.split(" ")
+            line.split(' ')
                 .map(|ch| ch.parse::<usize>().unwrap())
                 .collect()
         })

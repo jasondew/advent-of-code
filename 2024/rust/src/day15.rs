@@ -232,19 +232,16 @@ pub fn part2(input: &str) -> usize {
     }
 
     for (position, cell) in warehouse.map {
-        match cell {
-            Cell::Box(id) => {
-                let score = position.row * 100 + position.col;
-                box_scores
-                    .entry(id)
-                    .and_modify(|existing_score| {
-                        if *existing_score > score {
-                            *existing_score = score
-                        }
-                    })
-                    .or_insert(score);
-            }
-            _ => {}
+        if let Cell::Box(id) = cell {
+            let score = position.row * 100 + position.col;
+            box_scores
+                .entry(id)
+                .and_modify(|existing_score| {
+                    if *existing_score > score {
+                        *existing_score = score
+                    }
+                })
+                .or_insert(score);
         }
     }
 

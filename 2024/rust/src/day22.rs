@@ -31,9 +31,9 @@ pub fn part2(input: &str) -> usize {
 
     let mut all_ids: HashSet<ID> = HashSet::new();
 
-    for (_, map) in &maps {
+    for map in maps.values() {
         for id in map.keys() {
-            all_ids.insert(id.clone());
+            all_ids.insert(*id);
         }
     }
 
@@ -41,8 +41,8 @@ pub fn part2(input: &str) -> usize {
 
     for id in all_ids {
         let sum = maps
-            .iter()
-            .map(|(_, map)| map.get(&id).map_or(0, |price| *price))
+            .values()
+            .map(|map| map.get(&id).map_or(0, |price| *price))
             .sum();
 
         if sum > best_sum {
@@ -99,7 +99,7 @@ fn mix(x: usize, y: usize) -> usize {
 }
 
 fn prune(x: usize) -> usize {
-    x % 16777216
+    x % 16_777_216
 }
 
 fn parse(input: &str) -> Vec<usize> {
