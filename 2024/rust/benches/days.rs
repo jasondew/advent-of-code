@@ -42,11 +42,12 @@ day!(day19, "19");
 day!(day20, "20");
 day!(day22, "22");
 day!(day23, "23");
+day!(day24, "24");
 day!(day25, "25");
 
 criterion_group! {
     name = benches;
     config = Criterion::default().significance_level(0.1).sample_size(25);
-    targets = day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12, day13, day14, day15, day16, day17, day18, day19, day20, day22, day23, day25
+    targets = day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12, day13, day14, day15, day16, day17, day18, day19, day20, day22, day23, day24, day25
 }
 criterion_main!(benches);
