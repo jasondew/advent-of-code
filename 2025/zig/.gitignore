@@ -1,0 +1,11 @@
+ # Zig build artifacts
+zig-cache/
+zig-out/
+.zig-cache/
+
+# Build outputs
+*.o
+*.so
+*.dylib
+*.dll
+*.wasm
