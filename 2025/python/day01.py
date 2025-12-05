@@ -1,6 +1,5 @@
 import unittest
 
-
 def part1(input: str) -> int:
     zero_count = 0
     dial = 50
@@ -51,7 +50,6 @@ def run():
     print(f"Part 1: {part1(input)}")
     print(f"Part 2: {part2(input)}")
 
-
 class Tests(unittest.TestCase):
     EXAMPLE_INPUT = """
         L68
@@ -71,7 +69,6 @@ class Tests(unittest.TestCase):
 
     def test_part2_example(self):
         self.assertEqual(part2(self.EXAMPLE_INPUT), 6)
-
 
 if __name__ == "__main__":
     import sys
