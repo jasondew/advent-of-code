@@ -1,0 +1,15 @@
+[tools]
+zig = "0.15.2"
+zls = "0.15.0"
+watchexec = "latest"
+
+[tasks.day01]
+run = "clear; zig build day01"
+
+[tasks.test]
+description = "Runs all unit tests defined in the source code."
+run = "zig build test --summary all"
+
+[tasks.watch]
+description = "Continuously watches Zig source files and runs unit tests upon save."
+run = "watchexec -w src/ --exts zig --clear -- 'zig build test --summary all'"
