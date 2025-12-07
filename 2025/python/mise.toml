@@ -1,0 +1,16 @@
+[tools]
+python = "3.12"
+uv = "latest"
+watchexec = "latest"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.day01]
+run = "uv run python day01.py"
+
+[tasks.test]
+run = "uv run python day01.py test"
+
+[tasks.watch]
+run = "watchexec --exts py --clear -- 'uv run python day01.py test'"
