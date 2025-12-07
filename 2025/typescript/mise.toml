@@ -1,0 +1,12 @@
+[tools]
+nodejs = "23.11.0"
+watchexec = "latest"
+
+[tasks.day01]
+run = "DAY=01 npm run day"
+
+[tasks.test]
+run = "npm test"
+
+[tasks.watch]
+run = "watchexec -w src/ --exts ts --clear -- 'npm test'"
