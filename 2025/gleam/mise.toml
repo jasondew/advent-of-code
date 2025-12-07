@@ -1,0 +1,11 @@
+[tools]
+gleam = "1.13.0"
+
+[tasks.run]
+run = "gleam run -m day01"
+
+[tasks.test]
+run = "gleam test"
+
+[tasks.watch]
+run = "watchexec --exts gleam --clear -- 'gleam test'"
