@@ -1,0 +1,12 @@
+[tools]
+rust = "1.91.1"
+watchexec = "latest"
+
+[tasks.day01]
+run = "cargo run --release -- 1"
+
+[tasks.test]
+run = "cargo test"
+
+[tasks.watch]
+run = "watchexec -w src/ --exts rs --clear -- 'cargo test'"
