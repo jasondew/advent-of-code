@@ -2,6 +2,31 @@ use std::env;
 use std::fs;
 use std::process;
 
+macro_rules! days {
+    ($($day:literal => $mod:ident),* $(,)?) => {
+        fn run_day(day: u32, input: &str) {
+            match day {
+                $(
+                    $day => {
+                        use advent_of_code::$mod;
+                        println!("Part 1: {}", $mod::part1(input));
+                        println!("Part 2: {}", $mod::part2(input));
+                    }
+                )*
+                _ => {
+                    eprintln!("Day {} not yet implemented", day);
+                    process::exit(1);
+                }
+            }
+        }
+    };
+}
+
+days!(
+    1 => day01,
+    2 => day02,
+);
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -15,8 +40,8 @@ fn main() {
         process::exit(1);
     });
 
-    if !(1..=12).contains(&day) {
-        eprintln!("Error: day must be between 1 and 12");
+    if !(1..=25).contains(&day) {
+        eprintln!("Error: day must be between 1 and 25");
         process::exit(1);
     }
 
@@ -26,15 +51,5 @@ fn main() {
         process::exit(1);
     });
 
-    match day {
-        1 => {
-            use advent_of_code::day01;
-            println!("Part 1: {}", day01::part1(&input));
-            println!("Part 2: {}", day01::part2(&input));
-        }
-        _ => {
-            eprintln!("Day {} not yet implemented", day);
-            process::exit(1);
-        }
-    }
+    run_day(day, &input);
 }

@@ -1,3 +1,4 @@
+#[must_use]
 pub fn part1(input: &str) -> usize {
     let mut dial = 50;
     let mut zero_count = 0;
@@ -13,7 +14,7 @@ pub fn part1(input: &str) -> usize {
             "R" => {
                 dial = (dial + 100 - amount) % 100;
             }
-            _ => panic!("Invalid direction: {}", direction),
+            _ => panic!("Invalid direction: {direction}"),
         }
 
         if dial == 0 {
@@ -24,6 +25,7 @@ pub fn part1(input: &str) -> usize {
     zero_count
 }
 
+#[must_use]
 pub fn part2(input: &str) -> usize {
     let mut dial = 50;
     let mut zero_count = 0;
@@ -45,7 +47,7 @@ pub fn part2(input: &str) -> usize {
                 zero_count += (dial + amount) / 100;
                 dial = (dial + amount) % 100;
             }
-            _ => panic!("Invalid direction: {}", direction),
+            _ => panic!("Invalid direction: {direction}"),
         }
     }
 

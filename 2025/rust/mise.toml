@@ -2,11 +2,11 @@
 rust = "1.91.1"
 watchexec = "latest"
 
-[tasks.day01]
-run = "cargo run --release -- 1"
+[tasks.day]
+run = "cargo run --release -- $1"
 
 [tasks.test]
-run = "cargo test"
+run = 'bash -c "cargo test --lib day\$(printf %02d \$1)" -- $1'
 
 [tasks.watch]
-run = "watchexec -w src/ --exts rs --clear -- 'cargo test'"
+run = 'bash -c "watchexec -w src/ --exts rs --clear -- cargo test --lib day\$(printf %02d \$1)" -- $1'
