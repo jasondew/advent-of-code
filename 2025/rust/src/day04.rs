@@ -15,6 +15,7 @@ struct Map {
 }
 
 impl Map {
+    #[allow(dead_code)]
     fn print(&self) {
         for row in 0..self.rows {
             for col in 0..self.cols {
@@ -28,6 +29,7 @@ impl Map {
         }
     }
 
+    #[allow(dead_code)]
     fn print_with_accessible_rolls(&self, accessible_rolls: &Vec<Position>) {
         for row in 0..self.rows {
             for col in 0..self.cols {
