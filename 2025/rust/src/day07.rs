@@ -19,7 +19,7 @@ pub fn part1(input: &str) -> usize {
 
     for row in 1..manifold.height {
         let current_positions: Vec<usize> =
-            beam_positions.iter().cloned().collect();
+            beam_positions.iter().copied().collect();
         beam_positions.clear();
 
         for col in &current_positions {
@@ -53,30 +53,29 @@ pub fn part2(input: &str) -> usize {
 
         if splitter_cols.is_empty() {
             continue;
-        } else {
-            for (&col, &timelines) in &beams {
-                if splitter_cols.contains(&col) {
-                    new_beams
-                        .entry(col - 1)
-                        .and_modify(|t| *t += timelines)
-                        .or_insert(timelines);
-                    new_beams
-                        .entry(col + 1)
-                        .and_modify(|t| *t += timelines)
-                        .or_insert(timelines);
-                } else {
-                    new_beams
-                        .entry(col)
-                        .and_modify(|t| *t += timelines)
-                        .or_insert(timelines);
-                }
-            }
-
-            beams = new_beams;
         }
+        for (&col, &timelines) in &beams {
+            if splitter_cols.contains(&col) {
+                new_beams
+                    .entry(col - 1)
+                    .and_modify(|t| *t += timelines)
+                    .or_insert(timelines);
+                new_beams
+                    .entry(col + 1)
+                    .and_modify(|t| *t += timelines)
+                    .or_insert(timelines);
+            } else {
+                new_beams
+                    .entry(col)
+                    .and_modify(|t| *t += timelines)
+                    .or_insert(timelines);
+            }
+        }
+
+        beams = new_beams;
     }
 
-    beams.iter().map(|(_col, timelines)| timelines).sum()
+    beams.values().sum()
 }
 
 fn parse(input: &str) -> Manifold {

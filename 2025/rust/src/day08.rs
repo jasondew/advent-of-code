@@ -22,6 +22,7 @@ pub fn part1(input: &str) -> usize {
     part1_with_count(input, 1000)
 }
 
+#[must_use]
 pub fn part1_with_count(input: &str, count: usize) -> usize {
     let box_positions = parse(input);
     let distances = all_pairs_distances(&box_positions);
@@ -40,11 +41,11 @@ pub fn part1_with_count(input: &str, count: usize) -> usize {
                 hash_set.insert(to);
                 circuits.push(hash_set);
             }
-            [circuit1, circuit2] => {
-                circuit1.insert(from);
-                circuit1.insert(to);
-                for position in circuit2.drain() {
-                    circuit1.insert(position);
+            [circuit_a, circuit_b] => {
+                circuit_a.insert(from);
+                circuit_a.insert(to);
+                for position in circuit_b.drain() {
+                    circuit_a.insert(position);
                 }
             }
             [circuit] => {
@@ -56,7 +57,11 @@ pub fn part1_with_count(input: &str, count: usize) -> usize {
     }
 
     circuits.sort_unstable_by_key(|nodes| Reverse(nodes.len()));
-    circuits.iter().take(3).map(|nodes| nodes.len()).product()
+    circuits
+        .iter()
+        .take(3)
+        .map(std::collections::HashSet::len)
+        .product()
 }
 
 fn all_pairs_distances(
@@ -66,9 +71,9 @@ fn all_pairs_distances(
 
     for (i, a) in positions.iter().enumerate() {
         for b in positions.iter().skip(i + 1) {
-            let distance = ((a.x as isize - b.x as isize).pow(2)
-                + (a.y as isize - b.y as isize).pow(2)
-                + (a.z as isize - b.z as isize).pow(2))
+            let distance = ((a.x as i128 - b.x as i128).pow(2)
+                + (a.y as i128 - b.y as i128).pow(2)
+                + (a.z as i128 - b.z as i128).pow(2))
                 as usize;
             pair_distances.push((a, b, distance));
         }
@@ -86,7 +91,7 @@ pub fn part2(input: &str) -> usize {
     let mut max_circuit_size = 0usize;
     let mut answer = 0usize;
 
-    for (from, to, _distance) in distances.iter() {
+    for (from, to, _distance) in &distances {
         let mut matching_circuits: Vec<&mut HashSet<&Position>> = circuits
             .iter_mut()
             .filter(|nodes| nodes.contains(from) || nodes.contains(to))
@@ -99,11 +104,11 @@ pub fn part2(input: &str) -> usize {
                 hash_set.insert(to);
                 circuits.push(hash_set);
             }
-            [circuit1, circuit2] => {
-                circuit1.insert(from);
-                circuit1.insert(to);
-                for position in circuit2.drain() {
-                    circuit1.insert(position);
+            [circuit_a, circuit_b] => {
+                circuit_a.insert(from);
+                circuit_a.insert(to);
+                for position in circuit_b.drain() {
+                    circuit_a.insert(position);
                 }
             }
             [circuit] => {
@@ -115,7 +120,11 @@ pub fn part2(input: &str) -> usize {
 
         circuits.retain(|circuit| !circuit.is_empty());
 
-        let max = circuits.iter().map(|c| c.len()).max().unwrap_or(0);
+        let max = circuits
+            .iter()
+            .map(std::collections::HashSet::len)
+            .max()
+            .unwrap_or(0);
         if max > max_circuit_size {
             max_circuit_size = max;
             answer = from.x * to.x;

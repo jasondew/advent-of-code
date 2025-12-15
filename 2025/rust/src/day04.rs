@@ -30,7 +30,7 @@ impl Map {
     }
 
     #[allow(dead_code)]
-    fn print_with_accessible_rolls(&self, accessible_rolls: &Vec<Position>) {
+    fn print_with_accessible_rolls(&self, accessible_rolls: &[Position]) {
         for row in 0..self.rows {
             for col in 0..self.cols {
                 if accessible_rolls.contains(&(row, col)) {
@@ -108,7 +108,7 @@ fn parse_map(input: &str) -> Map {
                     tiles.insert((row, col), Tile::Open);
                 }
                 _ => {
-                    panic!("Unexpected character in map: {}", ch);
+                    panic!("Unexpected character in map: {ch}");
                 }
             }
         }
@@ -136,13 +136,12 @@ pub fn part2(input: &str) -> usize {
 
         if accessible_rolls.is_empty() {
             break;
-        } else {
-            accessible_roll_count += accessible_rolls.len();
-            for position in &accessible_rolls {
-                map.tiles.remove(position);
-            }
-            accessible_rolls.clear();
         }
+        accessible_roll_count += accessible_rolls.len();
+        for position in &accessible_rolls {
+            map.tiles.remove(position);
+        }
+        accessible_rolls.clear();
     }
 
     accessible_roll_count

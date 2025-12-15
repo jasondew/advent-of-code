@@ -17,6 +17,8 @@ impl Debug for Position {
     }
 }
 
+type Grid = Vec<Vec<Option<Tile>>>;
+
 #[derive(Clone, PartialEq)]
 enum Tile {
     Red,
@@ -34,8 +36,10 @@ pub fn part1(input: &str) -> usize {
         });
 
         for other_tile in other_tiles {
-            let width = (tile.x as isize - other_tile.x as isize).abs() + 1;
-            let height = (tile.y as isize - other_tile.y as isize).abs() + 1;
+            let width =
+                (tile.x as i128 - other_tile.x as i128).unsigned_abs() + 1;
+            let height =
+                (tile.y as i128 - other_tile.y as i128).unsigned_abs() + 1;
             let area = (width * height) as usize;
 
             if area > max_area {
@@ -83,8 +87,9 @@ pub fn part2(input: &str) -> usize {
     max_area
 }
 
+#[allow(clippy::needless_range_loop)]
 fn valid_rectangle(
-    grid: &Vec<Vec<Option<Tile>>>,
+    grid: &[Vec<Option<Tile>>],
     (top_x, top_y): (usize, usize),
     (bottom_x, bottom_y): (usize, usize),
 ) -> bool {
@@ -107,11 +112,7 @@ fn valid_rectangle(
 
 fn compress(
     tiles: &Vec<Position>,
-) -> (
-    Vec<Vec<Option<Tile>>>,
-    HashMap<usize, usize>,
-    HashMap<usize, usize>,
-) {
+) -> (Grid, HashMap<usize, usize>, HashMap<usize, usize>) {
     let mut x_values: Vec<usize> = tiles.iter().map(|p| p.x).collect();
     x_values.sort_unstable();
     x_values.dedup();
@@ -135,8 +136,9 @@ fn compress(
     (grid, x_mapping, y_mapping)
 }
 
+#[allow(clippy::needless_range_loop)]
 fn add_edges(
-    grid: &mut Vec<Vec<Option<Tile>>>,
+    grid: &mut Grid,
     tiles: &[Position],
     x_mapping: &HashMap<usize, usize>,
     y_mapping: &HashMap<usize, usize>,
@@ -163,7 +165,7 @@ fn add_edges(
     }
 }
 
-fn flood_fill(grid: &mut Vec<Vec<Option<Tile>>>) {
+fn flood_fill(grid: &mut Grid) {
     let mut start_point = Position { x: 0, y: 0 };
     let mut inside = false;
     for (x, tile) in grid[1].iter().enumerate() {
@@ -172,10 +174,8 @@ fn flood_fill(grid: &mut Vec<Vec<Option<Tile>>>) {
                 start_point = Position { x, y: 1 };
                 break;
             }
-        } else {
-            if tile.is_some() {
-                inside = true;
-            }
+        } else if tile.is_some() {
+            inside = true;
         }
     }
 
@@ -213,8 +213,8 @@ fn flood_fill(grid: &mut Vec<Vec<Option<Tile>>>) {
 }
 
 fn calculate_area(top: &Position, bottom: &Position) -> usize {
-    let width = (top.x as isize - bottom.x as isize).abs() + 1;
-    let height = (top.y as isize - bottom.y as isize).abs() + 1;
+    let width = (top.x as i128 - bottom.x as i128).unsigned_abs() + 1;
+    let height = (top.y as i128 - bottom.y as i128).unsigned_abs() + 1;
 
     (width * height) as usize
 }
@@ -242,6 +242,9 @@ fn print(tiles: &[Position]) {
 /// # Panics
 /// Panics if the image cannot be saved to the specified path.
 #[allow(dead_code)]
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss)]
 fn draw_tiles_png(tiles: &[Position], filename: &str) {
     if tiles.is_empty() {
         return;
@@ -257,7 +260,7 @@ fn draw_tiles_png(tiles: &[Position], filename: &str) {
     let width = ((max_x + 1) as f64 * scale).ceil() as u32;
     let height = ((max_y + 1) as f64 * scale).ceil() as u32;
 
-    println!("Creating {}x{} image (scale: {:.6})", width, height, scale);
+    println!("Creating {width}x{height} image (scale: {scale:.6})");
 
     let mut img: RgbImage = ImageBuffer::new(width, height);
 

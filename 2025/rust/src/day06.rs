@@ -28,22 +28,14 @@ struct Homework {
 pub fn part1(input: &str) -> usize {
     let homework = parse(input);
 
-    homework
-        .problems
-        .iter()
-        .map(|problem| problem.solve())
-        .sum()
+    homework.problems.iter().map(Problem::solve).sum()
 }
 
 #[must_use]
 pub fn part2(input: &str) -> usize {
     let homework = parse_right_to_left(input);
 
-    homework
-        .problems
-        .iter()
-        .map(|problem| problem.solve())
-        .sum()
+    homework.problems.iter().map(Problem::solve).sum()
 }
 
 fn parse(input: &str) -> Homework {
@@ -53,7 +45,6 @@ fn parse(input: &str) -> Homework {
     let operation_line = &lines[lines.len() - 1];
 
     let mut problems: Vec<Problem> = operation_line
-        .trim()
         .split_whitespace()
         .map(|c| match c {
             "*" => Problem {
@@ -64,12 +55,12 @@ fn parse(input: &str) -> Homework {
                 numbers: Vec::new(),
                 operation: Operation::Add,
             },
-            _ => panic!("Unexpected operation: {}", c),
+            _ => panic!("Unexpected operation: {c}"),
         })
         .collect();
 
-    for line in number_lines.iter() {
-        for (i, number_string) in line.trim().split_whitespace().enumerate() {
+    for line in number_lines {
+        for (i, number_string) in line.split_whitespace().enumerate() {
             problems[i].numbers.push(number_string.parse().unwrap());
         }
     }
@@ -84,7 +75,6 @@ fn parse_right_to_left(input: &str) -> Homework {
     let operation_line = &lines[lines.len() - 1];
 
     let mut problems: Vec<Problem> = operation_line
-        .trim()
         .split_whitespace()
         .map(|c| match c {
             "*" => Problem {
@@ -95,7 +85,7 @@ fn parse_right_to_left(input: &str) -> Homework {
                 numbers: Vec::new(),
                 operation: Operation::Add,
             },
-            _ => panic!("Unexpected operation: {}", c),
+            _ => panic!("Unexpected operation: {c}"),
         })
         .collect();
 
@@ -105,7 +95,7 @@ fn parse_right_to_left(input: &str) -> Homework {
         .collect();
 
     let rows = number_chars.len();
-    let cols = number_chars.first().map(|row| row.len()).unwrap_or(0);
+    let cols = number_chars.first().map_or(0, std::vec::Vec::len);
 
     let mut number_chars_transposed: Vec<Vec<char>> =
         vec![vec![' '; rows]; cols];
@@ -119,7 +109,7 @@ fn parse_right_to_left(input: &str) -> Homework {
     let mut problem_number = 0;
     let mut numbers: Vec<usize> = Vec::new();
 
-    for number_vec in number_chars_transposed.iter() {
+    for number_vec in &number_chars_transposed {
         if number_vec.iter().all(|c| c.is_whitespace()) {
             problems[problem_number].numbers = numbers;
             problem_number += 1;

@@ -24,12 +24,10 @@ fn maximum_two_digit_joltage(joltages: &[usize]) -> usize {
             largest_digit = joltage;
             largest_digit_position = position;
             second_largest_digit = 0;
-        } else {
-            if joltage > second_largest_digit
-                && position > largest_digit_position
-            {
-                second_largest_digit = joltage;
-            }
+        } else if joltage > second_largest_digit
+            && position > largest_digit_position
+        {
+            second_largest_digit = joltage;
         }
     }
 
@@ -54,8 +52,8 @@ pub fn part2(input: &str) -> usize {
 
 fn maximum_twelve_digit_joltage(joltages: &[usize]) -> usize {
     let joltage_count = joltages.len();
-    let mut largest_digits = vec![0usize].repeat(12);
-    let mut largest_digit_positions = vec![0usize].repeat(12);
+    let mut largest_digits = [0usize].repeat(12);
+    let mut largest_digit_positions = [0usize].repeat(12);
 
     for (position, &joltage) in joltages.iter().enumerate() {
         for i in 0..12 {
