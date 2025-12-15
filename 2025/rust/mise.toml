@@ -10,3 +10,6 @@ run = 'bash -c "cargo test --lib day\$(printf %02d \$1)" -- $1'
 
 [tasks.watch]
 run = 'bash -c "watchexec -w src/ --exts rs --clear -- cargo test --lib day\$(printf %02d \$1)" -- $1'
+
+[tasks.clippy]
+run = 'watchexec -w src/ --exts rs --clear -- cargo clippy'
