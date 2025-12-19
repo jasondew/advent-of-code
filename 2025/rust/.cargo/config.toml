@@ -1,0 +1,9 @@
+[build]
+rustflags = [
+    "-L", "/opt/homebrew/opt/cbc/lib",
+    "-L", "/opt/homebrew/opt/z3/lib"
+]
+
+[env]
+PKG_CONFIG_PATH = "/opt/homebrew/opt/cbc/lib/pkgconfig:/opt/homebrew/opt/z3/lib/pkgconfig"
+Z3_SYS_Z3_HEADER = "/opt/homebrew/opt/z3/include/z3.h"
