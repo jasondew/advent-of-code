@@ -82,7 +82,8 @@ fn minimum_presses_z3(target: &[usize], buttons: &[Vec<usize>]) -> usize {
     button_vars
         .iter()
         .map(|var| {
-            usize::try_from(model.eval(var, true).unwrap().as_u64().unwrap()).unwrap()
+            usize::try_from(model.eval(var, true).unwrap().as_u64().unwrap())
+                .unwrap()
         })
         .sum()
 }

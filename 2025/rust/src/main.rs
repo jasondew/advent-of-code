@@ -33,6 +33,7 @@ days!(
     8 => day08,
     9 => day09,
     10 => day10,
+    11 => day11,
 );
 
 fn main() {
